@@ -17,6 +17,7 @@ NavigationToolbar2Tk)
 import seaborn as sns
 import numpy as np
 import random
+from tkintermapview import TkinterMapView
 
 
 
@@ -26,7 +27,7 @@ arbreIsVisible = False
 critereIsVisible = False
 
 
-request=["TOUS", "TOUS", "Quantité"]
+data=["TOUS", "TOUS", "Quantité"]
 
 
 #-----------------------------------------------------------------------
@@ -61,12 +62,30 @@ arbres.sort()
 
 def apply():
     ## Affiche les réponses, graphes et map relatifs à la demande
-    global frameCanvas
+    global frameCanvas, map_widget
     try:
         frameCanvas.destroy()
+        map_widget.destroy()
     except:
         pass
-    if request[0] == 'TOUS' and request[1] == 'TOUS' and request[2] == "Quantité":
+
+
+    # create map widget
+    map_widget = TkinterMapView(frameGraph, width=500, height=500, corner_radius=0)
+    map_widget.pack(fill="both", expand=True)
+
+    # Zone affichée de la carte
+    map_widget.set_position(48.860381, 2.338594)
+
+    # Zoom
+    map_widget.set_zoom(11)
+
+    # Marqueurs
+    map_widget.set_marker(48.867, 2.323, text="2eme")
+    map_widget.set_marker(48.8417, 2.2586, text="15eme")
+
+
+    if data[0] == 'TOUS' and data[1] == 'TOUS' and data[2] == "Quantité":
 
         sns.set(style="white")
 
@@ -82,40 +101,60 @@ def apply():
         f, ax = plt.subplots(figsize=(12, 9))
         f.subplots_adjust(bottom=0.50)
         plt.xticks(rotation=80)
+        font = {'family' : 'normal','size'   : 8}
+        plt.rc('font', **font)
         plt.gcf().set_size_inches(5, 5)
+        plt.xlabel('ARRONDISSEMENT')
         sns.barplot(x = 'ARRONDISSEMENT', y = 'COUNT',data = dataQ1)
 
+
         frameCanvas = Frame(frameReponseTexte)
-        frameCanvas.pack()
+        frameCanvas.pack(fill=BOTH)
         canvas = FigureCanvasTkAgg(f, master = frameCanvas)
         canvas.draw()
         canvas.get_tk_widget().pack()
 
 
+    if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité":
+        dataQ1 = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv")
+        dg = dataQ1.query('`LIBELLE FRANCAIS` == @data[1]')
+        df_maxArbre = dg["ARRONDISSEMENT"].value_counts().keys()[0]
+        df_minArbre = dg["ARRONDISSEMENT"].value_counts().keys()[-1]
+        df_nbrMaxArbre = dg["ARRONDISSEMENT"].value_counts()[0]
+        df_nbrMinArbre = dg["ARRONDISSEMENT"].value_counts()[-1]
+
+        result = f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)"
+        print(f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)")
+        frameLabelText = Label(frameMap, text=result)
+        frameLabelText.pack(side = LEFT)
+
+
+
+
 
 def selectArrdt(event):
     ## Mise à jour de l'arrondissement sélectionné dans la demande
-    global listeArrdt, request
+    global listeArrdt, data
     arrdt = listeArrdt.selection_get()
     creationListeArrdt()
-    request[0] = arrdt
-    print('request : ', request)
+    data[0] = arrdt
+    print('data : ', data)
 
 def selectArbre(event):
     ## Mise à jour du type d'arbre sélectionné dans la demande
-    global listeArbre, request
+    global listeArbre, data
     arbre = listeArbre.selection_get()
     creationListeArbre()
-    request[1] = arbre
-    print('request : ', request)
+    data[1] = arbre
+    print('data : ', data)
 
 def selectCritere(event):
     ## Mise à jour du critère sélectionné dans la demande
-    global listeCritere, request
+    global listeCritere, data
     critere = listeCritere.selection_get()
     creationListeCritere()
-    request[2] = critere
-    print('request : ', request)
+    data[2] = critere
+    print('data : ', data)
 
 
 #-----------------------------------------------------------------------
@@ -186,7 +225,7 @@ frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
 
 #---------- TOP : DEMANDE----------
 
-frameDemande = Frame(frameGauche, bg='Blue')
+frameDemande = Frame(frameGauche, bg='Blue', height = 500)
 frameDemande.pack( fill=BOTH, expand=True)
 
 
@@ -240,8 +279,8 @@ boutonApply.pack(side=RIGHT)
 #---------- BOTTOM : REPONSE TEXTUELLE ----------
 
 
-frameReponseTexte = Frame(frameGauche, bg='Black')
-frameReponseTexte.pack(fill=BOTH, expand=True)
+frameReponseTexte = Frame(frameGauche, bg='Black', height = 500, width = 500)
+frameReponseTexte.pack( fill=BOTH, expand=False)
 
 '''
 frameImage = Frame(frameReponseTexte)
@@ -276,8 +315,8 @@ frameMap.pack(side=TOP, fill=BOTH, expand=True)
 
 #---------- BOTTOM : GRAPH  ----------
 
-frameGraph = Frame(frameDroite, bg='White')
-frameGraph.pack(side=BOTTOM, fill=BOTH, expand=True)
+frameGraph = Frame(frameDroite, bg='White', height=500, width=500)
+frameGraph.pack(side=BOTTOM, fill=BOTH, expand=False)
 
 
 
