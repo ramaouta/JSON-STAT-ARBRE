@@ -42,7 +42,7 @@ localisation= {
     'PARIS 11E ARRDT': [48.8601,2.36405] ,
     'PARIS 10E ARRDT':[48.8759882,2.3448933] ,
     'PARIS 9E ARRDT':[48.877097,2.3291154] ,
-    'PARIS 8E ARRDT':[48.8732641,2.2935887] ,
+    'PARIS 8E ARRDT':[48.8727208374345,2.3125540224020678] ,
     'PARIS 7E ARRDT': [48.8548603,2.2939732],
     'PARIS 6E ARRDT':[48.8495301,2.3131637] ,
     'PARIS 5E ARRDT': [48.8454734,2.3338198], 
@@ -122,43 +122,43 @@ print(localisation_arbres)
 #-----------------------------------------------------------------------
 def affiche_map(tab,app): 
     #numero d'arrondissement spec 
-    print("*******************",tab)
+    print("*******************",app)
     arr= []
     for i, j  in tab.items(): 
         arr.append(i)
         map_widget.set_marker(j[0], j[1] , text= i) 
     
     for i in app : 
+        
+            a = arr_frame.loc[(arr_frame ["Numéro d’arrondissement"] == i ) & (arr_frame["Geometry X Y"])]
+            print(a)   
+            liste = a["Geometry"].to_list()
+            print(type(liste[0]))
+            string = liste[0][1:-1]
+            print('string : ', string)
+            # change une string en dictionnaire
+            res = {key: (val) for key, val in (item.split(':') for item in string.split(', "'))} 
+            print(type(res))
+            #print(res)
+            # la valeur de dico[clé] est une string
+            print("type", type(res['"coordinates"']))
+            # eval("string") → change la string en liste
+            res = eval(res['"coordinates"'])
+            print('newres : ',type(res[0]))
+            print('newres2 : ',res[0][0][1])
+            res = res[0]
+            polygo =[]
+            for coord in res:
+                print(coord)
+                points= [coord[1],coord[0]]
+                polygo.append(tuple(points))
+                #on a bien un dictionnaire avec des valeur en listes
+            print(polygo)
 
-        a = arr_frame.loc[(arr_frame ["Numéro d’arrondissement"] == i ) & (arr_frame["Geometry X Y"])]
-        print(a)   
-        liste = a["Geometry"].to_list()
-        print(type(liste[0]))
-        string = liste[0][1:-1]
-        print('string : ', string)
-        # change une string en dictionnaire
-        res = {key: (val) for key, val in (item.split(':') for item in string.split(', "'))} 
-        print(type(res))
-        #print(res)
-        # la valeur de dico[clé] est une string
-        print("type", type(res['"coordinates"']))
-        # eval("string") → change la string en liste
-        res = eval(res['"coordinates"'])
-        print('newres : ',type(res[0]))
-        print('newres2 : ',res[0][0][1])
-        res = res[0]
-        polygo =[]
-        for coord in res:
-            print(coord)
-            points= [coord[1],coord[0]]
-            polygo.append(tuple(points))
-            #on a bien un dictionnaire avec des valeur en listes
-        print(polygo)
+            map_widget.set_polygon(polygo, 
+                                    fill_color = 'red', 
 
-        map_widget.set_polygon(polygo, 
-                                fill_color = 'red', 
-
-        )
+            )
 
 
 def apply():
@@ -226,8 +226,7 @@ def apply():
         canvas = FigureCanvasTkAgg(f, master = frameCanvas)
         canvas.draw()
         canvas.get_tk_widget().pack()
-        affiche_map()
-
+        
     if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité":
         dataQ1 = pandas.read_csv("new_arbres.csv")
         dg = dataQ1.query('`LIBELLE FRANCAIS` == @data[1]')
@@ -262,7 +261,7 @@ def apply():
 
     # Arbre le plus haut par arrondissement
     if data[0]== 'TOUS' and data[1]== 'TOUS' and data[2]== 'Hauteur':
-        reponse ={}
+        reponse ={} ; app = []
         #hauteur arrondissement max 
         hautNom_arrMax = new_df.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].mean().sort_values(ascending=False).idxmax(axis=0)        #hauteur nombre max 
         hautNbr_Max = new_df.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].mean().sort_values(ascending=False).max()
@@ -275,8 +274,6 @@ def apply():
         #hauteur nombre max 
         hautNbr_Min = new_df.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].mean().sort_values(ascending=False).min()
 
-
-        
         if hautNom_arrMax in localisation : 
             reponse[hautNom_arrMax] = localisation [hautNom_arrMax]
             app.append(appartenance[hautNom_arrMax])
@@ -284,8 +281,9 @@ def apply():
         
         if hautNom_arrMin in localisation: 
             reponse[hautNom_arrMin] = localisation [hautNom_arrMin]
-            app.append(appartenance [hautNom_arrMin])
+            #app.append(appartenance [hautNom_arrMin])
 
+        print("ôlaaaa reponse", reponse, app)
         affiche_map(reponse,app)
 
 def selectArrdt(event):
