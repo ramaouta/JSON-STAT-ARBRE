@@ -53,7 +53,7 @@ localisation= {
 }
 
 appartenance= {
-    'PARIS 20E ARRDT': 20	,
+    'PARIS 20E ARRDT': 20,
     'PARIS 19E ARRDT': 19,
     'PARIS 18E ARRDT': 18,
     'PARIS 17E ARRDT': 17,
@@ -118,6 +118,7 @@ arbres.sort()
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 def affiche_map(marqueurs = {},zone = []):
+    global map_widget
     ## Affiche la carte avec les marqueurs et les zones
     #numero d'arrondissement spec
     arr= []
@@ -142,7 +143,7 @@ def affiche_map(marqueurs = {},zone = []):
                 points= [coord[1],coord[0]]
                 polygo.append(tuple(points))
                 #on a bien un dictionnaire avec des valeur en listes
-            map_widget.set_polygon(polygo, fill_color = 'red')
+            map_widget.set_polygon(polygo)
 
 
 def AfficheframeCanvas():
@@ -349,7 +350,6 @@ def apply():
 
 
 
-
     if data[0] == 'TOUS' and data[1] == 'TOUS' and data[2] == "Type":
 
         #CREATION DU GRAPH------------------------------------------------------
@@ -463,14 +463,35 @@ def apply():
 
 
 
-
-
-
-
     if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité":
 
-        dataQ1 = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv")
-        dg = dataQ1.query('`LIBELLE FRANCAIS` == @data[1]')
+        #CREATION DU GRAPH------------------------------------------------------
+        font = {'family' : 'normal','size'   : 5}
+        sns.set(style="white")
+        dataQ1 = new_df
+        dataQ1 = dataQ1.assign(COUNT=1)
+        dataQ1 = dataQ1.loc[dataQ1['LIBELLE FRANCAIS']== data[1], :]
+        dataQ1 = (pandas.crosstab(dataQ1['ARRONDISSEMENT'], dataQ1['COUNT']))
+        dataQ1.columns=['COUNT']
+        listeArrdt = dataQ1.index.tolist()
+        dataQ1.insert(0, "ARRONDISSEMENT", listeArrdt)
+        plt.figure(figsize = (16, 9))
+        plt.rc('font', **font)
+        f, ax = plt.subplots(figsize=(12, 9))
+        f.subplots_adjust(bottom=0.30)
+        plt.xticks(rotation=80)
+        plt.gcf().set_size_inches(5, 5)
+        plt.xlabel('ARRONDISSEMENT')
+        sns.barplot(x = 'ARRONDISSEMENT', y = 'COUNT',data = dataQ1)
+
+        AfficheframeCanvas()
+
+
+
+        #CREATION DU TEXTE -----------------------------------------------------
+
+        dg = new_df.query('`LIBELLE FRANCAIS` == @data[1]')
+
         df_maxArbre = dg["ARRONDISSEMENT"].value_counts().keys()[0]
         df_minArbre = dg["ARRONDISSEMENT"].value_counts().keys()[-1]
         df_nbrMaxArbre = dg["ARRONDISSEMENT"].value_counts()[0]
@@ -478,9 +499,184 @@ def apply():
 
         answer = f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)"
         #print(f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)")
+
         AfficheframeLabelText()
 
 
+
+
+
+        #CREATION DE LA MAP ----------------------------------------------------
+        # 10 arbres aléatoires par arrdt
+
+        # create map widget
+        dataQ1 = new_df
+        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+
+        map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+
+        # Zone affichée de la carte = PARIS
+        map_widget.set_position(48.860381, 2.338594)
+
+        # Zoom
+        map_widget.set_zoom(13)
+
+        dataQ = new_df
+        #dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']>50], inplace=True)
+        #dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']<2], inplace=True)
+        dataQ = dataQ.loc[dataQ['LIBELLE FRANCAIS']== data[1], :]
+        dataQ.head()
+
+        groupeArdt = dataQ.groupby("ARRONDISSEMENT")
+
+        marqueurs = {}
+
+        latitude = []
+        longitude = []
+        arbre = []
+
+        #Marqueurs sur tous les arbres select pour tous les ardt limité à 10
+        for arrdt in groupeArdt:
+            print(len(arrdt[1]))
+            for i in range(0,min(10, len(arrdt[1]))):
+                marqueurs[f"{arrdt[0]} - {arrdt[1].iloc[i , 4]} - {i+1}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
+
+        affiche_map(marqueurs)
+
+
+
+    if data[0] != 'TOUS' and data[1] == 'TOUS' and data[2] == "Quantité":
+
+        #CREATION DU GRAPH------------------------------------------------------
+
+        dataQ1 = new_df.loc[new_df['ARRONDISSEMENT']== data[0], :]
+        df1=dataQ1["LIBELLE FRANCAIS"].value_counts().tolist()
+        df2=dataQ1["LIBELLE FRANCAIS"].value_counts().keys().tolist()
+
+        dataQ3={"espece":df2,"valeur":df1}
+        dataQ3 = pandas.DataFrame(dataQ3, columns=['espece','valeur'])
+        dataQ3['pourcentage'] = 100*(dataQ3.valeur/ dataQ3.valeur.sum())
+        datatemp=pandas.DataFrame(columns=['espece', 'valeur', 'pourcentage'])
+        espece=[]
+        valeur=[]
+        pourcentage=[]
+        compteur=0
+        temp=0
+        for i in range(len(dataQ3)):
+            if dataQ3.pourcentage[i] > 2:
+                #print(dataQ3.pourcentage[i])
+                espece.append(dataQ3.espece[i])
+                valeur.append(dataQ3.valeur[i])
+                pourcentage.append(dataQ3.pourcentage[i])
+            else:
+                temp = temp + dataQ3.pourcentage[i]
+                compteur=compteur+dataQ3.valeur[i]
+
+        espece.append('Autres')
+        pourcentage.append(temp)
+        valeur.append(compteur)
+
+
+        labels = espece
+        sizes = pourcentage
+        listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9', '#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9']
+        colors = ['#f94144']
+        listeExplode = [0.2]
+        print('len(labels : ',len(labels) )
+        for i in range(len(labels)-1):
+            colors.append(listeColors[i])
+            listeExplode.append(0)
+
+
+        # Chaque cartile correspond à une valeur
+        explode = listeExplode
+
+        f = Figure() # create a figure object
+        ax = f.add_subplot(111) # add an Axes to the figure
+        plt.subplots(figsize=(12, 9))
+        ax.pie(sizes, radius=1, labels=labels,autopct='%0.2f%%', shadow=True, colors=colors, explode=explode)
+        #plt.gcf().set_size_inches(5, 5)
+
+        #plt.figure(figsize=(5,5))
+        #plt.pie(sizes, explode=explode, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=90,normalize=True)
+        #f, ax = plt.subplots(figsize=(12, 9))
+        #plt.axis('equal')
+        #plt.savefig('PieChart02.png')
+        #plt.show()
+
+        AfficheframeCanvas()
+
+
+
+        #CREATION DE LA MAP ----------------------------------------------------
+        # 10 arbres aléatoires pour l'arrdt select
+
+       # create map widget
+        dataQ1 = new_df
+        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+
+        map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+
+        # Zone affichée de la carte = PARIS
+        map_widget.set_position(localisation[data[0]][0], localisation[data[0]][1])
+
+        # Zoom
+        map_widget.set_zoom(13)
+
+        dataQ1 = new_df
+        dataQ = new_df
+        #dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']>50], inplace=True)
+        #dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']<2], inplace=True)
+        dataQ = dataQ.loc[dataQ['ARRONDISSEMENT']== data[0], :]
+        dataQ.head(100)
+
+        # groupeArdt = dataQ.groupby("ARRONDISSEMENT")
+
+        marqueurs = {}
+
+        # latitude = []
+        # longitude = []
+        # arbre = []
+
+        # #Marqueurs sur tous les arbres select pour tous les ardt limité à 50
+
+        for i in range(0,min(100, len(dataQ))):
+        #for i in range(0,len(dataQ)):
+            marqueurs[f"{dataQ.iloc[i , 4]} - {i+1}"] = [dataQ.iloc[i , 8], dataQ.iloc[i , 9]]
+
+
+        affiche_map(marqueurs)
+
+
+        #CREATION DU TEXTE -----------------------------------------------------
+        Arbre_df = new_df[(new_df['ARRONDISSEMENT']==data[0]) & (new_df['LIBELLE FRANCAIS'])]
+        nom_df = Arbre_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()[0]
+        nbr_df = Arbre_df["LIBELLE FRANCAIS"].value_counts().tolist()[0]
+
+        nom_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()[-1]
+        nbr_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().tolist()[-1]
+
+        #print(f"L'arbre le plus présent dans {data[0] } est le {nom_df} avec {nbr_df} specimens\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {nbr_df_min} specimen." )
+        answer = (f"L'arbre le plus présent dans {data[0] } est le {nom_df} avec {nbr_df} specimens\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {nbr_df_min} specimen." )
+        AfficheframeLabelText()
+
+
+def demande1():
+    global data
+    data=["TOUS", "TOUS", "Quantité"]
+    apply()
+
+def demande2():
+    global data
+    data=["TOUS", "TOUS", "Hauteur"]
+    apply()
+
+def demande3():
+    global data
+    data=["TOUS", "TOUS", "Type"]
+    apply()
 
 
 
@@ -531,7 +727,6 @@ def creationListeArrdt():
         listeArrdt.pack()
 
         arrdtIsVisible = True
-
 
 def creationListeArbre():
     global listeArbre, arbreIsVisible
@@ -632,10 +827,19 @@ boutonCritere.pack(side=TOP)
 #BoutonAPPLY
 #frameBouton = Frame(frameDemande, bg="Orange",)
 frameBouton = Frame(frameDemande, bg=color,)
-frameBouton.pack(side=BOTTOM, fill=X, pady=5, padx=5)
+frameBouton.pack(side=BOTTOM,  pady=20, padx=20)
 
 boutonApply = Button(frameBouton, text="APPLY", command=apply)
-boutonApply.pack(side=RIGHT)
+boutonApply.pack(side=RIGHT, padx=40)
+
+boutonQ1 = Button(frameBouton, text="Q1", command = demande1)
+boutonQ1.pack(side=LEFT, padx=10)
+
+boutonQ2 = Button(frameBouton, text="Q2", command = demande2)
+boutonQ2.pack(side=LEFT, padx=10)
+
+boutonQ3 = Button(frameBouton, text="Q3", command = demande3)
+boutonQ3.pack(side=LEFT, padx=10)
 
 
 
@@ -646,20 +850,6 @@ boutonApply.pack(side=RIGHT)
 frameGraph = Frame(frameGauche, bg=color, height = 500, width = 600)
 frameGraph.pack( fill=BOTH, expand=False)
 
-'''
-frameImage = Frame(frameReponseTexte)
-frameImage.pack()
-
-# Création et plug de l'image dans la Frame Image
-im = PIL.Image.open("image5.png")
-#im = Image.open(r"D:\Manu\FORMATIONS\PYTHON\PENDU\penduGIT\jeuPendu\image5.png")
-im = im.resize((250, 250))
-photo = ImageTk.PhotoImage(im, master = frameImage)
-labelPhoto = Label(frameImage)
-labelPhoto.img=photo
-labelPhoto.config(image = labelPhoto.img)
-labelPhoto.pack(pady=50)
-'''
 
 
 #-----------------------------------------------------------------------
