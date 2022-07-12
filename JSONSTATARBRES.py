@@ -6,7 +6,6 @@ from PIL import ImageTk
 
 import PIL.Image
 
-
 from tkinter import *
 from tkinter import messagebox
 import pandas
@@ -46,7 +45,9 @@ localisation= {
     'HAUTS-DE-SEINE':[48.828508,2.2188068]
 }
 
-color = "White"
+color = "#3A5F0B"
+colorb = '#CCFFBB'
+colort = "black"
 
 
 # les variables xxxIsVisible servent à afficher ou effacer les listes box (dans la partie demande) au clic sur le bouton correspondant
@@ -66,7 +67,7 @@ data=["TOUS", "TOUS", "Quantité"]
 
 
 #Lecture du fichier CSV
-new_df = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv", sep = ',', header = 0)
+new_df = pandas.read_csv(r"D:\Masterclass\les_arbres\les-arbres.csv", sep = ';', header = 0)
 
 #Récupération de la liste des arrondissements issus du CSV
 arrondissements = list(new_df['ARRONDISSEMENT'].unique())
@@ -105,24 +106,27 @@ def apply():
     if data[0] == 'TOUS' and data[1] == 'TOUS' and data[2] == "Quantité":
 
         #CREATION DU GRAPH------------------------------------------------------
-        sns.set(style="white")
-        dataQ1 = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv")
+        font = {'family' : 'Arial','size' : 7}
+        dataQ1 = pandas.read_csv(r"D:\Masterclass\les_arbres\les-arbres.csv", sep = ';', header = 0)
         dataQ1 = dataQ1.assign(COUNT=1)
         dataQ1 = (pandas.crosstab  ( dataQ1['ARRONDISSEMENT'], dataQ1['COUNT'] ))
         dataQ1.columns=['COUNT']
         listeArrdt = dataQ1.index.tolist()
         dataQ1.insert(0, "ARRONDISSEMENT", listeArrdt)
-        font = {'family' : 'normal','size'   : 5}
-        plt.figure(figsize = (40, 30))
+        plt.figure(figsize = (12, 9))
         plt.rc('font', **font)
         f, ax = plt.subplots(figsize=(12, 9))
-        f.subplots_adjust(bottom=0.50)
-        plt.xticks(rotation=80)
-        plt.gcf().set_size_inches(5, 5)
+        f.patch.set_facecolor('#CCFFBB')
+        ax.set_facecolor('black')
+        plt.xticks(rotation=85)
+        plt.xlabel('ARRONDISSEMENT', fontsize=12)
+        plt.ylabel('COUNT', fontsize=8)
+        f.subplots_adjust(bottom=0.40)
+        plt.gcf().set_size_inches(5, 4)
 
         #plt.xlabel('ARRONDISSEMENT')
         sns.barplot(x = 'ARRONDISSEMENT', y = 'COUNT',data = dataQ1)
-        frameCanvas = Frame(frameGraph)
+        frameCanvas = Frame(frameGraph, bg=color)
         frameCanvas.pack(fill=BOTH)
         canvas = FigureCanvasTkAgg(f, master = frameCanvas)
         canvas.draw()
@@ -132,6 +136,8 @@ def apply():
         # create map widget
         map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
         map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+
+        map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x=%7Bx%7D&y=%7By%7D&z=%7Bz%7D&s=Ga", max_zoom=22)
 
         # Zone affichée de la carte = PARIS
         map_widget.set_position(48.860381, 2.338594)
@@ -165,14 +171,15 @@ def apply():
         nbr_arrMin = new_df["ARRONDISSEMENT"].value_counts().min()
 
         answer = f"L'arrondissement avec le plus d'arbre est {nom_arrond_max} comptant un total de {nbr_arrMax} arbre.\n\nCelui avec le moins d'arbre est {nom_arrond_min} avec un total de {nbr_arrMin} arbre."
-        frameLabelText = Label(frameReponseTexte, text=answer)
-        frameLabelText.pack(side = LEFT)
+        frameLabelText = Label(frameReponseTexte, bg=color, fg=colorb, text=answer)
+        frameLabelText.config(font=('Helvatica',10))
+        frameLabelText.place(x=0, y=150)
 
 
 
     if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité":
 
-        dataQ1 = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv")
+        dataQ1 = pandas.read_csv(r"D:\Masterclass\les_arbres\les-arbres.csv", sep = ';', header = 0)
         dg = dataQ1.query('`LIBELLE FRANCAIS` == @data[1]')
         df_maxArbre = dg["ARRONDISSEMENT"].value_counts().keys()[0]
         df_minArbre = dg["ARRONDISSEMENT"].value_counts().keys()[-1]
@@ -181,8 +188,9 @@ def apply():
 
         result = f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)"
         #print(f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)")
-        frameLabelText = Label(frameMap, text=result)
-        frameLabelText.pack(side = LEFT)
+        frameLabelText = Label(frameMap, bg=color, text=result)
+        frameLabelText.config(font=('Helvatica',10))
+        frameLabelText.place(x=40, y=150)
 
 
 
@@ -270,12 +278,14 @@ def creationListeCritere():
 
 
 
-
 mainFenetre = Tk()
 mainFenetre.title('JSON STAT ARBRES')
 mainFenetre.geometry('1200x900')
 
-
+##bgi = open("D:\Masterclass\les_arbres\ImgArbre.png")
+##img = PIL.Image.open(bgi)
+##bgi2 = img.resize((100, 100))
+##newbgi = ImageTk.PhotoImage(bgi2)
 #-----------------------------------------------------------------------
 #                 FRAME GAUCHE
 #-----------------------------------------------------------------------
@@ -293,10 +303,6 @@ frameDemande.pack( fill=BOTH, expand=True)
 
 
 
-
-
-
-
 #frameMenu = Frame(frameDemande, bg="Pink",)
 frameMenu = Frame(frameDemande, bg=color,)
 frameMenu.pack(side=TOP)
@@ -306,7 +312,7 @@ frameMenu.pack(side=TOP)
 frameArrdt = Frame(frameMenu, bg=color, width=500)
 frameArrdt.pack(side=LEFT, fill=Y,)
 
-boutonArrdt = Button(frameArrdt, text="Arrondissement", command=creationListeArrdt, width=17)
+boutonArrdt = Button(frameArrdt, text="Arrondissement", bg=colorb, fg = colort, command=creationListeArrdt, width=17)
 boutonArrdt.pack(side=TOP)
 
 listeArrdt = Listbox(frameArrdt, width=20,)
@@ -319,7 +325,7 @@ listeArrdt.destroy()
 frameArbre = Frame(frameMenu, bg=color, width=500)
 frameArbre.pack(side=LEFT, fill=Y,)
 
-boutonArbre = Button(frameArbre, text="Arbre", command=creationListeArbre, width=17)
+boutonArbre = Button(frameArbre, text="Arbre", bg=colorb, fg = colort, command=creationListeArbre, width=17)
 boutonArbre.pack(side=TOP)
 
 
@@ -328,7 +334,7 @@ boutonArbre.pack(side=TOP)
 frameCritere = Frame(frameMenu, bg=color, width=500)
 frameCritere.pack(side=LEFT, fill=Y,)
 
-boutonCritere = Button(frameCritere, text="Critere", command=creationListeCritere, width=17)
+boutonCritere = Button(frameCritere, text="Critere", bg=colorb, fg = colort, command=creationListeCritere, width=17)
 boutonCritere.pack(side=TOP)
 
 
@@ -338,7 +344,7 @@ boutonCritere.pack(side=TOP)
 frameBouton = Frame(frameDemande, bg=color,)
 frameBouton.pack(side=BOTTOM, fill=X, pady=5, padx=5)
 
-boutonApply = Button(frameBouton, text="APPLY", command=apply)
+boutonApply = Button(frameBouton, text="APPLY", bg=colorb, fg = colort, command=apply)
 boutonApply.pack(side=RIGHT)
 
 
@@ -347,7 +353,13 @@ boutonApply.pack(side=RIGHT)
 
 
 #frameGraph = Frame(frameGauche, bg='Black', height = 500, width = 500)
-frameGraph = Frame(frameGauche, bg=color, height = 600, width = 450)
+frameTitreGraph = Frame(frameGauche, bg=color,)
+frameTitreGraph.pack(side=BOTTOM)
+
+titreGraph = Label(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
+titreGraph.pack(side=LEFT, pady = 5)
+
+frameGraph = Frame(frameGauche, bg=color, height = 600, width = 450, pady = 50)
 frameGraph.pack( fill=BOTH, expand=False)
 
 '''
@@ -381,6 +393,8 @@ frameReponseTexte = Frame(frameDroite, bg=color)
 frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
 
 
+##labeltest = Label(frameReponseTexte, image = newbgi).pack()
+
 
 
 #---------- BOTTOM : GRAPH  ----------
@@ -390,13 +404,13 @@ frameMap = Frame(frameDroite, bg=color, height=600, width=450)
 frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
 
 frameTitreMap = Frame(frameMap, bg=color,)
-frameTitreMap.pack(side=TOP)
+frameTitreMap.pack(side=BOTTOM)
 
-titreMap = Label(frameTitreMap, text="MAP", bg = "Purple", fg = color)
-titreMap.pack(side=LEFT, padx=10)
+titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
+titreMap.pack(side=LEFT, pady = 5)
 
 frameTheMap = Frame(frameMap, bg=color,)
-frameTheMap.pack(side=TOP)
+frameTheMap.pack(side=TOP, pady = 38)
 
 
 
