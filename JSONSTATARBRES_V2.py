@@ -81,6 +81,7 @@ color = "#3A5F0B"
 colorb = '#CCFFBB'
 colort = 'black'
 colorg = '#E9D79E'
+colorm = '#E08F4B'
 
 
 # les variables xxxIsVisible servent à afficher ou effacer les listes box (dans la partie demande) au clic sur le bouton correspondant
@@ -153,7 +154,7 @@ def affiche_map(marqueurs = {},zone = []):
 def AfficheframeCanvas():
     ## Pack la frameCanvas dans frameGraph
     global f, frameCanvas
-    frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=358)
+    frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=354)
     frameCanvas.pack(fill=BOTH, expand=True)
     canvas = FigureCanvasTkAgg(f, master = frameCanvas)
     canvas.draw()
@@ -193,6 +194,7 @@ def apply():
 
         #CREATION DU GRAPH------------------------------------------------------
         font = {'family' : 'Arial','size' : 7}
+        plt.rc('font', **font)
         dataQ1 = pandas.read_csv(r"D:\Masterclass\les_arbres\les-arbres.csv", sep = ';', header = 0)
         dataQ1 = dataQ1.assign(COUNT=1)
         dataQ1 = (pandas.crosstab  ( dataQ1['ARRONDISSEMENT'], dataQ1['COUNT'] ))
@@ -200,7 +202,6 @@ def apply():
         listeArrdt = dataQ1.index.tolist()
         dataQ1.insert(0, "ARRONDISSEMENT", listeArrdt)
         plt.figure(figsize = (12, 9))
-        plt.rc('font', **font)
         f, ax = plt.subplots(figsize=(12, 9))
         f.patch.set_facecolor(colorg)
         ax.set_facecolor('black')
@@ -217,7 +218,7 @@ def apply():
         #CREATION DE LA MAP ----------------------------------------------------
         # create map widget
         dataQ1 = new_df
-        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget = TkinterMapView(frameMap, width=600, height=400, corner_radius=20)
         map_widget.pack(  pady = 10, padx = 10, side=TOP)
 
         titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
@@ -252,7 +253,7 @@ def apply():
         nbr_arrMax = new_df["ARRONDISSEMENT"].value_counts().max()
         nbr_arrMin = dataQ1["ARRONDISSEMENT"].value_counts().min()
 
-        answer = f"L'arrondissement avec le plus d'arbre est {nom_arrond_max} comptant un total de {nbr_arrMax} arbre.\n\nCelui avec le moins d'arbre est {nom_arrond_min} avec un total de {nbr_arrMin} arbre."
+        answer = f"\nL'arrondissement avec le plus d'arbre est {nom_arrond_max} comptant un total de {nbr_arrMax} arbre.\n\nCelui avec le moins d'arbre est {nom_arrond_min} avec un total de {nbr_arrMin} arbre.\n"
         AfficheframeLabelText()
 
 
@@ -265,6 +266,7 @@ def apply():
         dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
         dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
         font = {'family' : 'Arial','size' : 3}
+        plt.rc('font', **font)
 
         g = dataQ1.groupby('ARRONDISSEMENT')
         dataQ2 = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min,pandas.Series.count])
@@ -273,7 +275,6 @@ def apply():
         dataQ2.insert(0,"ARRONDISSEMENT",listarro)
 
         f, ax = plt.subplots(figsize=(5,5))
-        plt.rc('font', **font)
         sns.set_color_codes("pastel")
         sns.barplot(x="MAX", y="ARRONDISSEMENT", data=dataQ2, label='Maximum', color="b")
 
@@ -332,7 +333,7 @@ def apply():
         #CREATION DE LA MAP ----------------------------------------------------
         # L'arbre le plus haut et le plus bas de chaque arrdt
         # create map widget
-        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget = TkinterMapView(frameMap, width=400, height=400, corner_radius=0)
         map_widget.pack(  pady = 10, padx = 10, side=TOP)
 
         titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
@@ -381,6 +382,7 @@ def apply():
         df1=new_df["LIBELLE FRANCAIS"].value_counts().tolist()
         df2=new_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()
         font = {'family' : 'Arial','size' : 8}
+        plt.rc('font', **font)
 
         dataQ3={"espece":df2,"valeur":df1}
         dataQ3 = pandas.DataFrame(dataQ3, columns=['espece','valeur'])
@@ -422,7 +424,6 @@ def apply():
         f = Figure() # create a figure object
         ax = f.add_subplot(111) # add an Axes to the figure
         plt.subplots(figsize=(12, 9))
-        plt.rc('font', **font)
         ax.pie(sizes, radius=1, labels=labels,autopct='%0.2f%%', shadow=True, colors=colors, explode=explode)
         fig = plt.gcf()
         f.patch.set_facecolor(colorg)
@@ -460,7 +461,7 @@ def apply():
 
         # create map widget
         dataQ1 = new_df
-        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget = TkinterMapView(frameMap, width=400, height=400, corner_radius=0)
         map_widget.pack(  pady = 10, padx = 10, side=TOP)
 
         titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
@@ -580,7 +581,7 @@ def creationListeArbre():
         arbreIsVisible = True
 
 def creationListeCritere():
-    global listeCritere, critereIsVisible
+    global listeCritere, critereIsVisible, boutonApply
     if critereIsVisible == True:
         listeCritere.destroy()
         critereIsVisible = False
@@ -591,10 +592,26 @@ def creationListeCritere():
         listeCritere.insert(3, "Type")
         listeCritere.bind('<<ListboxSelect>>', selectCritere)
         listeCritere.pack()
+##        boutonApply.destroy()
+##        boutonApply = Button(frameBouton, text="APPLY", bg=colorb, command=apply)
+##        boutonApply.pack()
         critereIsVisible = True
 
 
+def demande1():
+    global data
+    data=["TOUS", "TOUS", "Quantité"]
+    apply()
 
+def demande2():
+    global data
+    data=["TOUS", "TOUS", "Hauteur"]
+    apply()
+
+def demande3():
+    global data
+    data=["TOUS", "TOUS", "Type"]
+    apply()
 
 
 mainFenetre = Tk()
@@ -616,18 +633,16 @@ frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
 #---------- TOP : DEMANDE----------
 
 #frameDemande = Frame(frameGauche, bg='Blue', height = 500)
-frameDemande = Frame(frameGauche, bg=color, height = 500, width=600)
+frameDemande = Frame(frameGauche, bg=color, height = 300, width=600)
 frameDemande.pack( fill=BOTH, expand=True)
-
-
-
-
-
+frameDemande.pack_propagate(False)
+frameImageMenu = Label(frameDemande, image = img2)
+frameImageMenu.pack(fill=BOTH, expand=True)
 
 
 
 #frameMenu = Frame(frameDemande, bg="Pink",)
-frameMenu = Frame(frameDemande, bg=color,)
+frameMenu = Frame(frameImageMenu, bg=color,)
 frameMenu.pack(side=TOP)
 
 # Arrdt
@@ -665,12 +680,18 @@ boutonCritere.pack(side=TOP)
 
 #BoutonAPPLY
 #frameBouton = Frame(frameDemande, bg="Orange",)
-frameBouton = Frame(frameDemande, bg=color,)
-frameBouton.pack(side=BOTTOM, fill=X, pady=5, padx=5)
 
-boutonApply = Button(frameBouton, text="APPLY", bg=colorb, command=apply)
-boutonApply.pack(side=RIGHT)
+boutonApply = Button(frameImageMenu, text="APPLY", bg=colorb, command=apply)
+boutonApply.place(relx=.7, rely=.9,anchor= CENTER)
 
+boutonQ1 = Button(frameImageMenu, text="Q1", command = demande1, bg=colorb)
+boutonQ1.place(relx=.3, rely=.9,anchor= CENTER)
+
+boutonQ2 = Button(frameImageMenu, text="Q2", command = demande2, bg=colorb)
+boutonQ2.place(relx=.4, rely=.9,anchor= CENTER)
+
+boutonQ3 = Button(frameImageMenu, text="Q3", command = demande3, bg=colorb)
+boutonQ3.place(relx=.5, rely=.9,anchor= CENTER)
 
 
 #---------- BOTTOM : GRAPHE ----------
@@ -682,7 +703,7 @@ frameTitreGraph.pack(side=BOTTOM)
 titreGraph = Label(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
 titreGraph.pack(side=LEFT, pady = 5)
 
-frameGraph = Frame(frameGauche, bg=colorg, height = 368, width = 400, pady = 5)
+frameGraph = Frame(frameGauche, bg=colorg, height = 364, width = 400, pady = 5)
 frameGraph.pack( fill=BOTH, expand=False)
 
 '''
@@ -725,13 +746,13 @@ frameImage.pack()
 #---------- BOTTOM : MAP  ----------
 
 #frameMap = Frame(frameDroite, bg='White', height=500, width=500)
-frameMap = Frame(frameDroite, bg=colorb, height=410, width=600)
+frameMap = Frame(frameDroite, bg=colorm, height=410, width=600)
 frameMap.pack_propagate(False)
 frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
-frameImageMap = Label(frameMap, image = img2)
-frameImageMap.pack(fill=BOTH, expand=True)
+##frameImageMap = Label(frameMap, image = img2)
+##frameImageMap.pack(fill=BOTH, expand=True)
 
-frameTitreMap = Frame(frameImageMap, bg=colorb,)
+frameTitreMap = Frame(frameMap, bg=colorm,)
 frameTitreMap.pack(side=BOTTOM)
 
 
@@ -740,7 +761,6 @@ titreMap.pack(side=BOTTOM, pady = 5)
 
 ##labelImage2 = Label(frameTheMap, image = img)
 ##labelImage2.pack()
-
 
 
 
