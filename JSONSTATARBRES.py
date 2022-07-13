@@ -291,7 +291,7 @@ def apply():
         df_nbrMax = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].max().sort_values(ascending=False).tolist()[0]
         df_nbrMin = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].min().sort_values().tolist()[0]
 
-        answer = f"Le {data[1]} le plus haut fait {df_nbrMax} mètres et se trouve dans {df_arrdMax}\nLe {data[1]} le moins haut fait {df_nbrMin} mètres et se trouve dans {df_arrdMin}."
+        answer = f"L'arbre {data[1]} le plus haut fait {df_nbrMax} mètres et se trouve dans {df_arrdMax}\nLe {data[1]} le moins haut fait {df_nbrMin} mètres et se trouve dans {df_arrdMin}."
         AfficheframeLabelText()
 
     
