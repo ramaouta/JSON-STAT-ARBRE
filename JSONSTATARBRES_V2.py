@@ -78,7 +78,8 @@ appartenance= {
 
 color = "#3A5F0B"
 colorb = '#CCFFBB'
-colort = "black"
+colort = 'black'
+colorg = '#E9D79E'
 
 
 # les variables xxxIsVisible servent à afficher ou effacer les listes box (dans la partie demande) au clic sur le bouton correspondant
@@ -151,7 +152,7 @@ def affiche_map(marqueurs = {},zone = []):
 def AfficheframeCanvas():
     ## Pack la frameCanvas dans frameGraph
     global f, frameCanvas
-    frameCanvas = Frame(frameGraph, bg=color, width=229, height=420)
+    frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=358)
     frameCanvas.pack(fill=BOTH, expand=True)
     canvas = FigureCanvasTkAgg(f, master = frameCanvas)
     canvas.draw()
@@ -164,7 +165,7 @@ def AfficheframeLabelText():
     global answer, frameLabelText, frameLabelImage
     frameLabelImage = Label(frameReponseTexte, image = img)
     frameLabelImage.pack(side = LEFT, fill=BOTH, expand=True)
-    frameLabelText = Label(frameLabelImage, text=answer, bg=color)
+    frameLabelText = Label(frameLabelImage, text=answer, bg=colorb)
     frameLabelText.place(relx=.5, rely=.5,anchor= CENTER)
 
 
@@ -174,10 +175,11 @@ def apply():
     ## Affiche les réponses, graphes et map relatifs à la demande
 
     # A chaque demande del'utilisateur : Destruction des Graphe, Map et Label précédents
-    global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage
+    global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage, titreMap
     try:
         print(1)
         frameImage.destroy()
+        titreMap.destroy()
         frameCanvas.destroy()
         map_widget.destroy()
         frameLabelText.destroy()
@@ -199,7 +201,7 @@ def apply():
         plt.figure(figsize = (12, 9))
         plt.rc('font', **font)
         f, ax = plt.subplots(figsize=(12, 9))
-        f.patch.set_facecolor('#CCFFBB')
+        f.patch.set_facecolor(colorg)
         ax.set_facecolor('black')
         plt.xticks(rotation=85)
         plt.xlabel('ARRONDISSEMENT', fontsize=12)
@@ -214,8 +216,11 @@ def apply():
         #CREATION DE LA MAP ----------------------------------------------------
         # create map widget
         dataQ1 = new_df
-        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
-        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=TOP)
+
+        titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
+        titreMap.pack(side=BOTTOM, pady = 5)
 
         map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -282,7 +287,7 @@ def apply():
         ax.set(ylim=(-2,28),xlim=(-1, 60), ylabel="Arrondissement", xlabel="hauteur")
         plt.rc('font', **font)
         sns.despine(right=True, top=True)
-        f.patch.set_facecolor('#CCFFBB')
+        f.patch.set_facecolor(colorg)
         ax.set_facecolor('black')
         plt.gcf().set_size_inches(5, 4)
 
@@ -326,8 +331,11 @@ def apply():
         #CREATION DE LA MAP ----------------------------------------------------
         # L'arbre le plus haut et le plus bas de chaque arrdt
         # create map widget
-        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
-        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=TOP)
+
+        titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
+        titreMap.pack(side=BOTTOM, pady = 5)
 
         map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -416,7 +424,7 @@ def apply():
         plt.rc('font', **font)
         ax.pie(sizes, radius=1, labels=labels,autopct='%0.2f%%', shadow=True, colors=colors, explode=explode)
         fig = plt.gcf()
-        f.patch.set_facecolor(colorb)
+        f.patch.set_facecolor(colorg)
 
         #plt.figure(figsize=(5,5))
         #plt.pie(sizes, explode=explode, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=90,normalize=True)
@@ -451,8 +459,11 @@ def apply():
 
         # create map widget
         dataQ1 = new_df
-        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
-        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+        map_widget = TkinterMapView(frameImageMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=TOP)
+
+        titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
+        titreMap.pack(side=BOTTOM, pady = 5)
 
         map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -587,16 +598,18 @@ def creationListeCritere():
 
 mainFenetre = Tk()
 mainFenetre.title('JSON STAT ARBRES')
-mainFenetre.geometry('1200x930')
-img1 = PIL.Image.open("D:\Masterclass\les_arbres\ImgArbre.png")
-img = ImageTk.PhotoImage(img1)
+mainFenetre.geometry('1200x790')
+imgArbre = PIL.Image.open("ImgArbre.png")
+img = ImageTk.PhotoImage(imgArbre)
+imgFeuille = PIL.Image.open("ImgFeuille.png")
+img2 = ImageTk.PhotoImage(imgFeuille)
 
 #-----------------------------------------------------------------------
 #                 FRAME GAUCHE
 #-----------------------------------------------------------------------
 
 #frameGauche = Frame(mainFenetre, bg='Red',)
-frameGauche = Frame(mainFenetre, bg=color)
+frameGauche = Frame(mainFenetre, bg=colorg)
 frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
 
 #---------- TOP : DEMANDE----------
@@ -662,13 +675,13 @@ boutonApply.pack(side=RIGHT)
 #---------- BOTTOM : GRAPHE ----------
 
 #frameGraph = Frame(frameGauche, bg='Black', height = 500, width = 500)
-frameTitreGraph = Frame(frameGauche, bg=color,)
+frameTitreGraph = Frame(frameGauche, bg=colorg,)
 frameTitreGraph.pack(side=BOTTOM)
 
 titreGraph = Label(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
 titreGraph.pack(side=LEFT, pady = 5)
 
-frameGraph = Frame(frameGauche, bg=color, height = 600, width = 450, pady = 20)
+frameGraph = Frame(frameGauche, bg=colorg, height = 368, width = 400, pady = 5)
 frameGraph.pack( fill=BOTH, expand=False)
 
 '''
@@ -711,18 +724,19 @@ frameImage.pack()
 #---------- BOTTOM : MAP  ----------
 
 #frameMap = Frame(frameDroite, bg='White', height=500, width=500)
-frameMap = Frame(frameDroite, bg=color, height=700, width=600)
+frameMap = Frame(frameDroite, bg=colorb, height=410, width=600)
+frameMap.pack_propagate(False)
 frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
+frameImageMap = Label(frameMap, image = img2)
+frameImageMap.pack(fill=BOTH, expand=True)
 
-frameTitreMap = Frame(frameMap, bg=color,)
+frameTitreMap = Frame(frameImageMap, bg=colorb,)
 frameTitreMap.pack(side=BOTTOM)
 
 
 titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
-titreMap.pack(side=LEFT, pady = 5)
+titreMap.pack(side=BOTTOM, pady = 5)
 
-frameTheMap = Frame(frameMap, bg=color,)
-frameTheMap.pack(side=TOP)
 ##labelImage2 = Label(frameTheMap, image = img)
 ##labelImage2.pack()
 
