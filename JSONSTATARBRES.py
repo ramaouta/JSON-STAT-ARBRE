@@ -123,16 +123,20 @@ def affiche_map(marqueurs = {},zone = []):
     #numero d'arrondissement spec
     arr= []
     if type(marqueurs) == dict:
-        if (len(marqueurs) > 5 ) :
+        
             for i, j  in marqueurs.items(): 
+
                 arr.append(i)
-                
-                map_widget.set_marker(j[0], j[1] , text="" , marker_color_circle="#3a5a40", marker_color_outside="#a3b18a")
-        else:    
-            for i, j  in marqueurs.items():
-                arr.append(i)
-                
-                map_widget.set_marker(j[0], j[1] , text= i)
+                #enlever apres "_"
+                tag_marqueur = ""
+                for k in i : 
+                    if k != "_" : 
+                        tag_marqueur = str(tag_marqueur)+str(k)
+                    else : 
+                        break 
+
+                map_widget.set_marker(j[0], j[1] , text= tag_marqueur  , marker_color_circle="#3a5a40", marker_color_outside="#a3b18a")
+        
 
     for el in zone :
             a = arr_df.loc[(arr_df ["Numéro d’arrondissement"] == el ) & (arr_df["Geometry X Y"])]
@@ -248,9 +252,9 @@ def apply():
 
         # Zone affichée de la carte = PARIS
         #map_widget.set_position(48.860381, 2.338594)
-        map_widget.set_position(48.860381, 2.338594)
+        map_widget.set_position(localisation[data[0]])
         # Zoom
-        map_widget.set_zoom(11)
+        map_widget.set_zoom(19)
 
         
         marqueurs = {}
@@ -294,7 +298,142 @@ def apply():
         answer = f"L'arbre {data[1]} le plus haut fait {df_nbrMax} mètres et se trouve dans {df_arrdMax}\nLe {data[1]} le moins haut fait {df_nbrMin} mètres et se trouve dans {df_arrdMin}."
         AfficheframeLabelText()
 
-    
+    #One, one, hauteur
+    if data[0] != 'TOUS' and data[1] != 'TOUS' and data[2] == "Hauteur" : 
+        #CREATION DU GRAPH------------------------------------------------------
+        print("one one")
+        font = {'family' : 'normal','size'   : 5}
+        sns.set(style="white")
+        dataQ1 = new_df ; dataQ2 = new_df; dataQ3 = new_df
+        #suppression de l arbre'hauteur superieur à 50 et inferieur à 2
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
+        ##################     one,one,hauteur      #########################
+        dataQ1 = dataQ1.loc[ (dataQ1['ARRONDISSEMENT']== data[0] )&(dataQ1['LIBELLE FRANCAIS'] == data[1] ),  :]
+        g = dataQ1.groupby('ARRONDISSEMENT')
+        data_one_one = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min])
+        data_one_one.columns=['MEAN', 'MAX', 'MIN']
+
+        data_one_one.insert(0,"TYPE",data[1])
+        #####################    one,tous,hauteur    ###############################
+        dataQ1_one_tous = dataQ2.loc[(dataQ2['ARRONDISSEMENT']== data[0]) & (dataQ2["LIBELLE FRANCAIS"]!=data[1]), :]
+        g = dataQ1_one_tous.groupby('ARRONDISSEMENT')
+        data_one_tous = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min])
+        data_one_tous.columns=['MEAN', 'MAX', 'MIN']
+        data_one_tous.insert(0,"TYPE","AUTRE")
+        #print("tous tous hauteur", data_one_tous)
+
+          #####################    tous,tous,hauteur   ###############################
+        data_demo_tous_tous=dataQ3.loc[(dataQ3['ARRONDISSEMENT']!= data[0]) & (dataQ3["LIBELLE FRANCAIS"]==data[1]), :]
+        g = data_demo_tous_tous.groupby('ARRONDISSEMENT')
+        data_tous_tous = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min])
+        data_tous_tous.columns=['MEAN', 'MAX', 'MIN']
+        data_tous_tous.sort_values(by=["MAX"],ascending=False)
+        data_tous_tous.sort_values(by=["MIN"],ascending=False)
+        data_tous_tous.insert(0,"TYPE",f"{data[1]} dans les autres arrondissements")
+        temp_moyenne_valeur=[int(elem) for elem in data_tous_tous["MEAN"]]
+        moyenne_autre_arrondissement=[int(int(sum(temp_moyenne_valeur))/len(temp_moyenne_valeur))]
+
+            #####################    listes   ###############################
+        element=[]
+        element.append(data_one_one["TYPE"][0])
+        element.append(data_one_tous["TYPE"][0])
+        element.append(data_tous_tous["TYPE"][0])
+
+        maximums=[]
+        maximums.extend(data_one_one["MAX"])
+        maximums.extend(data_one_tous["MAX"])
+        maximums.append(data_tous_tous["MAX"][0])
+
+        minimums=[]
+        minimums.extend(data_one_one["MIN"])
+        minimums.extend(data_one_tous["MIN"])
+        minimums.append(data_tous_tous["MIN"][0])
+
+        moyennes=[]
+        moyennes.extend(int(elem) for elem in data_one_one["MEAN"])
+        moyennes.extend(int(elem) for elem in data_one_tous["MEAN"])
+        moyennes.extend(moyenne_autre_arrondissement)
+
+            ####################### GRAPHE   #################################"
+        f, ax = plt.subplots(figsize=(5,5))
+        font = {'family' : 'Arial','size' : 12}
+        plt.rc('font', **font)
+        plt.title(f'la compariason entre les moyennes ,les maximums et les minimums hauteurs de \"{data[1]}\" avec tous les types presents \n dans \"{data[0]}\" et tous les types dans les autres arrondissements \n\n', fontsize=8)
+
+        sns.set_color_codes("pastel")
+        sns.barplot(x=element, y=maximums,
+                    label='Maximum', color="g")
+
+        sns.set_color_codes("muted")
+        sns.barplot(x=element, y=moyennes,
+                    label="Moyenne", color="y")
+
+        sns.set_color_codes("bright")
+        sns.barplot(x=element, y=minimums,
+                    label='Minimum', color="r")
+
+        ax.legend(ncol=3, loc="upper right", frameon=True)
+        ax.set(ylim=(0,50),xlim=(-0.5, 3), ylabel="Hauteur",
+            xlabel=f"\n\n\n - premiere barre : les éléments chosis \n deuxième barre : tous les types presents dans l'arrondissement choisi \n troisième barre : le type choisi dans les autres arrondissements ")
+        # plt.xticks(rotation=20)
+        sns.despine(right=True, top=True)
+
+        AfficheframeCanvas()
+        #CREATION DE LA MAP ----------------------------------------------------
+        # create map widget
+        
+        new_df_data = new_df
+        new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+        new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
+
+        map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
+        map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+
+        map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+
+        # Zone affichée de la carte = PARIS
+
+        map_widget.set_position(48.860381, 2.338594)
+        # Zoom
+        map_widget.set_zoom(11)
+        marqueurs = {}
+        zone = []         
+        
+        new_df = pandas.read_csv("new_arbres.csv") 
+        dataQ1 = new_df
+        #suppression de l arbre'hauteur superieur à 50 et inferieur à 2
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
+
+        dataQ1 = dataQ1.loc[ (dataQ1['ARRONDISSEMENT']== data[0] )&(dataQ1['LIBELLE FRANCAIS']== data[1] ), :]
+
+        if list(dataQ1 ) != 0 :
+            liste_arr = []
+            for i , row in dataQ1.iterrows(): 
+                coordonner = []
+                coordonner.append(row['LATITUDE']) ; coordonner.append(row['LONGITUDE'])
+                #liste_hauteur.append(row['HAUTEUR (m)'])
+                marqueurs[str(row['HAUTEUR (m)'])+"(m)_"+str(i)] = coordonner
+            zone.append(appartenance[data[0]])
+            liste_arr.append(data[0])
+        affiche_map(marqueurs, zone)
+
+        #CREATION DE text ----------------------------------------------------
+
+        new_df = pandas.read_csv("new_arbres.csv", sep = ',', header = 0)
+        new_df_Q2 = new_df
+        
+        dg = new_df_Q2.query('`ARRONDISSEMENT` == @data[0] & `LIBELLE FRANCAIS` == @data[1]')
+        moy_df = dg.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].mean().max()
+        taille_max = dg["HAUTEUR (m)"].sort_values(ascending = False).max()
+        taille_min = dg["HAUTEUR (m)"].sort_values(ascending = False).min()
+
+        
+        answer = f'Les arbres : " {data[1]} " de {data[0]} font en moyenne {moy_df}m. \n le plus haut fait {taille_max}m et le plus petit fait {taille_min}m.'
+        AfficheframeLabelText()
+
+
 def selectArrdt(event):
     ## Mise à jour de l'arrondissement sélectionné dans la demande
     global listeArrdt, data
