@@ -85,6 +85,7 @@ critereIsVisible = False
 
 # Création d'une variable data correspondant au choix de l'utilisateur. Format : ["Arrpndissement", "Arbre", "Critère"]
 data=["TOUS", "TOUS", "Quantité"]
+liste_arr = []
 
 
 #-----------------------------------------------------------------------
@@ -125,10 +126,12 @@ def affiche_map(marqueurs = {},zone = []):
         if (len(marqueurs) > 5 ) :
             for i, j  in marqueurs.items(): 
                 arr.append(i)
-                map_widget.set_marker(j[0], j[1] , text= "")
+                
+                map_widget.set_marker(j[0], j[1] , text="" , marker_color_circle="#3a5a40", marker_color_outside="#a3b18a")
         else:    
             for i, j  in marqueurs.items():
                 arr.append(i)
+                
                 map_widget.set_marker(j[0], j[1] , text= i)
 
     for el in zone :
@@ -148,6 +151,12 @@ def affiche_map(marqueurs = {},zone = []):
                 polygo.append(tuple(points))
                 #on a bien un dictionnaire avec des valeur en listes
             map_widget.set_polygon(polygo, fill_color = 'red')
+    print("liste_arrondissement", liste_arr)    
+    #arrondissement marqueur
+    for el in liste_arr : 
+        if el in localisation : 
+            print(localisation[el][0])
+            map_widget.set_marker(localisation[el][0], localisation[el][1] , text= el)
 
 
 def AfficheframeCanvas():
@@ -175,7 +184,7 @@ def apply():
     ## Affiche les réponses, graphes et map relatifs à la demande
 
     # A chaque demande del'utilisateur : Destruction des Graphe, Map et Label précédents
-    global frameCanvas, f, map_widget, frameLabelText, answer, new_df , data
+    global frameCanvas, f, map_widget, frameLabelText, answer, new_df , data , liste_arr
     try:
         print(1)
         frameLabelText.destroy()
@@ -186,40 +195,52 @@ def apply():
         pass
 
     #@laf 
-    #One_one_qte
-    if data[0] != 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité" : 
-        #CREATION DU GRAPH------------------------------------------------------
+    #TOUS , ONE , Hauteur
+    if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Hauteur" : 
+        #CREATION DU GRAPH------------------------------------------------------    
         font = {'family' : 'normal','size'   : 5}
         sns.set(style="white")
-        #@laf1
-        #dataQ1 = new_df
-        nbr_arbre_spec =len(new_df.loc[(new_df['ARRONDISSEMENT'] == data[0]) & (new_df['LIBELLE FRANCAIS']==data[1])])
-        dataQ1 = new_df.loc[new_df['ARRONDISSEMENT']== data[0], :]
+        #@laf2
+        dataQ1 = new_df
+        #suppression de l arbre'hauteur superieur à 50 et inferieur à 2
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+        dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
 
-        tous_les_arbres = len(dataQ1)
-
-        sizes = [nbr_arbre_spec , tous_les_arbres-nbr_arbre_spec ]
-        labels = [data[1], 'autre']
-
-        colors = sns.color_palette("husl", 2)
-        explode = (0, 0.2)  
-        f = Figure() # create a figure object
-        ax = f.add_subplot(111) # add an Axes to the figure
-        plt.subplots(figsize=(12, 9))
-
-        def libel (pct, allvalues): 
-            nbr = int(pct / 100.*np.sum(allvalues))  #5315
-            return '{:0.0f}%\n \n {:d}'.format(pct, nbr)
-
-        ax.pie(sizes, radius=1, labels=labels,autopct=lambda pct: libel(pct, sizes), shadow=True, colors=colors, explode=explode)
-
-
+        dataQ1 = dataQ1.loc[dataQ1['LIBELLE FRANCAIS']== data[1], :]
         
-        AfficheframeCanvas()
+        g = dataQ1.groupby('ARRONDISSEMENT')
+        dataQ2 = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min,pandas.Series.count])
+        list_arro=dataQ2.index.tolist()
+        dataQ2.columns=['MEAN', 'MAX', 'MIN','COUNT']
+        dataQ2.insert(0,"ARRONDISSEMENT",list_arro)
+        #print(dataQ2)
+        
+        f, ax = plt.subplots(figsize=(5,5))
+        sns.set_color_codes("pastel")
+        sns.barplot(x="MAX", y="ARRONDISSEMENT", data=dataQ2 , label='Maximum', color="b")
 
+
+        sns.set_color_codes("muted")
+        sns.barplot(x='MEAN', y='ARRONDISSEMENT', data=dataQ2, label="Average", color="g")
+
+        sns.set_color_codes("bright")
+        sns.barplot(x="MIN", y="ARRONDISSEMENT", data=dataQ2,
+                        label='minimum', color="b")
+
+        ax.legend(ncol=3, loc="upper right", frameon=True)
+        ax.set(ylim=(-2,26),xlim=(-1, 60), ylabel="Arrondissement",
+                xlabel="hauteur")
+        sns.despine(right=True, top=True)
+
+        AfficheframeCanvas()        
+        
         #CREATION DE LA MAP ----------------------------------------------------
         # create map widget
+        
         new_df_data = new_df
+        new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+        new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
+
         map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
         map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
 
@@ -227,43 +248,51 @@ def apply():
 
         # Zone affichée de la carte = PARIS
         #map_widget.set_position(48.860381, 2.338594)
-        map_widget.set_position(localisation[data[0]][0],localisation[data[0]][1])
+        map_widget.set_position(48.860381, 2.338594)
         # Zoom
-        map_widget.set_zoom(13)
+        map_widget.set_zoom(11)
 
         
         marqueurs = {}
         zone = []         
         
-        a = new_df.loc[:,['LIBELLE FRANCAIS' ,'LATITUDE' ,'LONGITUDE' ]]
-     
-        coord = a.loc[(new_df_data['ARRONDISSEMENT'] == data[0] )&(new_df_data['LIBELLE FRANCAIS'] == data[1] )]
-        
-        for i , row in coord.iterrows(): 
-            coordonner = []
-            coordonner.append(row['LATITUDE']) ; coordonner.append(row['LONGITUDE'])
-            #arrond_index= str(data[0])+"_"+str(i)
-            #type_index = 
-            marqueurs[str(data[1])+"_"+str(i)] = coordonner
+        new_df_data= new_df_data.loc[new_df_data['LIBELLE FRANCAIS'] == data[1], :]
+        a = new_df_data.loc[:,['ARRONDISSEMENT' ,'LIBELLE FRANCAIS', 'LATITUDE' ,'LONGITUDE' ]]
+        #print(a)
+        if list(a) != 0 : 
+            liste_arr = []
+            for i , row in a.iterrows(): 
+                coordonner = []
+                coordonner.append(row['LATITUDE']) ; coordonner.append(row['LONGITUDE'])
+                if (row['ARRONDISSEMENT'] in liste_arr) : 
+                    liste_arr.append("")
+                else: 
+                    if (row['ARRONDISSEMENT'] in appartenance)  : 
+                        liste_arr.append(row['ARRONDISSEMENT'])
+                
+                
+                marqueurs[str(data[1])+"_"+str(i)] = coordonner
+            print("nom_arr", liste_arr )
+            for i in liste_arr :    
+                if i in appartenance : 
+                    zone.append(appartenance[i])    
+        print("zone contour::::",zone)
+        affiche_map(marqueurs, zone) 
+        #CREATION DE text ----------------------------------------------------
 
-        zone.append(appartenance[data[0]])
-        #print(type(marqueurs), marqueurs) 
-        affiche_map(marqueurs, zone)
-        
-        #CREATION DU TEXTE ----------------------------------------------------
-        
         new_df = pandas.read_csv("new_arbres.csv", sep = ',', header = 0)
         new_df_Q2 = new_df
         new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']>50], inplace=True)
         new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']<2], inplace=True)
 
-        data = ["PARIS 7E ARRDT", "Platane", "Quantité"]
+        dg = new_df_Q2.query('`LIBELLE FRANCAIS` == @data[1]')
+        df_arrdMax = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].max().sort_values(ascending=False).keys().tolist()[0]
+        df_arrdMin = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].min().sort_values().keys().tolist()[0]
+        df_nbrMax = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].max().sort_values(ascending=False).tolist()[0]
+        df_nbrMin = dg.groupby(['ARRONDISSEMENT'], sort=True)['HAUTEUR (m)'].min().sort_values().tolist()[0]
 
-        dg = new_df_Q2.query('`ARRONDISSEMENT` == @data[0] & `LIBELLE FRANCAIS` == @data[1]')
-        nbr = dg["ARRONDISSEMENT"].value_counts().max()
-        answer = f"Dans l'arrondissement de {data[0]} il y a {nbr} {data[1]} ."
+        answer = f"Le {data[1]} le plus haut fait {df_nbrMax} mètres et se trouve dans {df_arrdMax}\nLe {data[1]} le moins haut fait {df_nbrMin} mètres et se trouve dans {df_arrdMin}."
         AfficheframeLabelText()
-
 
     
 def selectArrdt(event):
