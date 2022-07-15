@@ -101,6 +101,8 @@ data=["TOUS", "TOUS", "Quantité"]
 # Initialisation des variables marqueurs et zone relatives à la MAP
 marqueurs = {}
 zone = []
+# Initialisation d'une variable titreGraph pour les graph circulaire
+titreGraph=" "
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -135,6 +137,12 @@ arbres.sort()
 #                 FONCTION
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
+
+def separateurMilliers(n):
+    result = "{:,}".format(n).replace(',', ' ').replace('.', ',')
+    return result
+
+
 def affiche_map(marqueurs = {},zone = []):
     global map_widget
     ## Affiche la carte avec les marqueurs et les zones
@@ -199,6 +207,8 @@ def AfficheframeCanvas():
     ## Pack la frameCanvas dans frameGraph
     global f, frameCanvas
     frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=354)
+    labelTitre = Label(frameCanvas, text=titreGraph, bg=colorg, font=("Arial", 13))
+    labelTitre.pack()
     frameCanvas.pack(fill=BOTH, expand=True)
     canvas = FigureCanvasTkAgg(f, master = frameCanvas)
     canvas.draw()
@@ -249,7 +259,7 @@ def apply():
     ## Affiche les réponses, graphes et map relatifs à la demande
 
     # A chaque demande del'utilisateur : Destruction des Graphe, Map et Label précédents
-    global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage, frameImage, marqueurs, zone, data, titreMap
+    global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage, frameImage, marqueurs, zone, data, titreMap, titreGraph
     try:
         frameImage.destroy()
         #titreMap.destroy()
@@ -296,7 +306,7 @@ def apply():
 
             #sns.set(style="white")
             #f.subplots_adjust(bottom=0.30)
-
+            titreGraph=""
             AfficheframeCanvas()
 
 
@@ -304,7 +314,7 @@ def apply():
             # create map widget
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -328,7 +338,6 @@ def apply():
                 marqueurs[nom_arrond_min] = localisation[nom_arrond_min]
                 #zone.append(appartenance [nom_arrond_min])
                 zone.append(nom_arrond_min)
-            print('marqueurs 327 :', marqueurs)
             affiche_map(marqueurs, zone)
 
 
@@ -337,7 +346,7 @@ def apply():
             nbr_arrMax = new_df["ARRONDISSEMENT"].value_counts().max()
             nbr_arrMin = new_df["ARRONDISSEMENT"].value_counts().min()
 
-            answer = f"\nL'arrondissement avec le plus d'arbres est {nom_arrond_max} comptant un total de {nbr_arrMax} arbres.\n\nCelui avec le moins d'arbres est {nom_arrond_min} avec un total de {nbr_arrMin} arbres.\n"
+            answer = f"\nL'arrondissement avec le plus d'arbres est {nom_arrond_max} comptant un total de {separateurMilliers(nbr_arrMax)} arbres.\n\nCelui avec le moins d'arbres est {nom_arrond_min} avec un total de {separateurMilliers(nbr_arrMin)} arbres.\n"
             AfficheframeLabelText()
 
 
@@ -371,10 +380,10 @@ def apply():
             plt.xlabel('ARRONDISSEMENT', fontsize=12)
             plt.ylabel('COUNT', fontsize=8)
             f.subplots_adjust(bottom=0.40)
-            plt.gcf().set_size_inches(5, 4)
+            plt.gcf().set_size_inches(8, 8)
             sns.barplot(x = 'ARRONDISSEMENT', y = 'COUNT',data = dataQ1)
             plt.title(f'Quantité de "{data[1]}" par arrondissement', fontsize=13)
-
+            titreGraph=""
             AfficheframeCanvas()
 
 
@@ -387,8 +396,7 @@ def apply():
             df_nbrMaxArbre = dg["ARRONDISSEMENT"].value_counts()[0]
             df_nbrMinArbre = dg["ARRONDISSEMENT"].value_counts()[-1]
 
-            answer = f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)"
-            #print(f"L'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {df_nbrMaxArbre} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {df_nbrMinArbre} arbre(s)")
+            answer = f"\nL'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {separateurMilliers(df_nbrMaxArbre)} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {separateurMilliers(df_nbrMinArbre)} arbre(s)\n"
 
             AfficheframeLabelText()
 
@@ -402,7 +410,7 @@ def apply():
             # create map widget
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -410,7 +418,7 @@ def apply():
             map_widget.set_position(48.860381, 2.338594)
 
             # Zoom
-            map_widget.set_zoom(13)
+            map_widget.set_zoom(11)
 
             dataQ = new_df
             #dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']>50], inplace=True)
@@ -426,10 +434,9 @@ def apply():
             longitude = []
             arbre = []
 
-            #Marqueurs sur tous les arbres select pour tous les ardt limité à 10
+            #Marqueurs sur tous les arbres select pour tous les ardt limité à 20
             for arrdt in groupeArdt:
-                print(len(arrdt[1]))
-                for i in range(0,min(10, len(arrdt[1]))):
+                for i in range(0,min(20, len(arrdt[1]))):
                     marqueurs[f"{arrdt[0]} - {arrdt[1].iloc[i , 4]} - {i+1}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
 
             affiche_map(marqueurs)
@@ -464,7 +471,6 @@ def apply():
             temp=0
             for i in range(len(dataQ3)):
                 if dataQ3.pourcentage[i] > 2:
-                    #print(dataQ3.pourcentage[i])
                     espece.append(dataQ3.espece[i])
                     valeur.append(dataQ3.valeur[i])
                     pourcentage.append(dataQ3.pourcentage[i])
@@ -482,7 +488,6 @@ def apply():
             listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9', '#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9']
             colors = ['#f94144']
             listeExplode = [0.2]
-            print('len(labels : ',len(labels) )
             for i in range(len(labels)-1):
                 colors.append(listeColors[i])
                 listeExplode.append(0)
@@ -508,6 +513,7 @@ def apply():
             #plt.savefig('PieChart02.png')
             #plt.show()
 
+            titreGraph = f"Quantité d'arbres dans {data[0].upper()}"
             AfficheframeCanvas()
 
 
@@ -518,7 +524,7 @@ def apply():
            # create map widget
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10,)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -562,8 +568,7 @@ def apply():
             nom_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()[-1]
             nbr_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().tolist()[-1]
 
-            #print(f"L'arbre le plus présent dans {data[0] } est le {nom_df} avec {nbr_df} specimens\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {nbr_df_min} specimen." )
-            answer = (f"L'arbre le plus présent dans {data[0] } est le {nom_df} avec {nbr_df} specimens\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {nbr_df_min} specimen." )
+            answer = (f"\nL'arbre le plus présent dans {data[0] } est le {nom_df} avec {separateurMilliers(nbr_df)} specimens\n\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {separateurMilliers(nbr_df_min)} specimen.\n" )
             AfficheframeLabelText()
 
 
@@ -606,14 +611,14 @@ def apply():
 
             ax.pie(sizes, radius=1, labels=labels,autopct=lambda pct: libel(pct, sizes), shadow=True, colors=colors, explode=explode)
             f.patch.set_facecolor(colorg)
-
+            titreGraph=f"Quantité de {data[1].upper()} dans {data[0].upper()}"
             AfficheframeCanvas()
 
             #CREATION DE LA MAP ----------------------------------------------------
             # create map widget
             new_df_data = pandas.read_csv(path , sep = ',', header = 0)
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -639,21 +644,20 @@ def apply():
                 marqueurs[str(data[1])+"_"+str(i)] = coordonner
 
             zone.append(data[0])
-            #print(type(marqueurs), marqueurs)
             affiche_map(marqueurs, zone)
 
             #CREATION DU TEXTE ----------------------------------------------------
 
 
             new_df_Q2 = pandas.read_csv(path , sep = ',', header = 0)
-            new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']>50], inplace=True)
-            new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']<2], inplace=True)
+            #new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']>50], inplace=True)
+            #new_df_Q2.drop(new_df_Q2.index[new_df_Q2['HAUTEUR (m)']<2], inplace=True)
 
             dg = new_df_Q2.query('`ARRONDISSEMENT` == @data[0] & `LIBELLE FRANCAIS` == @data[1]')
             nbr = dg["ARRONDISSEMENT"].value_counts().max()
 
 
-            answer = f"Dans l'arrondissement de {data[0]} il y a {nbr} {data[1]}."
+            answer = f"\nDans l'arrondissement de {data[0]} il y a {nbr} arbre(s) de type {data[1]}.\n"
 
             AfficheframeLabelText()
 
@@ -686,7 +690,7 @@ def apply():
             dataQ2.insert(0,"ARRONDISSEMENT",listarro)
 
 
-            f, ax = plt.subplots(figsize=(5,5))
+            f, ax = plt.subplots(figsize=(12, 9))
             plt.rc('font', **font)
 
             sns.set_color_codes("pastel")
@@ -707,10 +711,11 @@ def apply():
             sns.despine(right=True, top=True)
             f.patch.set_facecolor(colorg)
             ax.set_facecolor('black')
-            plt.gcf().set_size_inches(5, 4)
+            plt.gcf().set_size_inches(8, 8)
             f.subplots_adjust(bottom=0.40)
             plt.title(f"Hauteur mini, moyenne et maxi des arbres par arrondissement", fontsize=11)
 
+            titreGraph=""
             AfficheframeCanvas()
 
 
@@ -719,6 +724,8 @@ def apply():
             #CREATION DU TEXTE -----------------------------------------------------
 
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
+            dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+            dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
             taille = dataQ1.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).tolist()[0]
             arr = dataQ1.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[0]
             tailleMin = dataQ1.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).tolist()[-1]
@@ -728,22 +735,19 @@ def apply():
             boucleMax = dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False)
             boucleMin = dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False)
 
-
-            print(f"Les arbres les plus hauts font {taille} m et se trouve dans :")
-
             arrdtMax = ""
             arrdtMin = ""
             for i in range(len(boucleMax)):
-                arrdtMax = f"{arrdtMax}\n{dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[i]}"
+                zone.append(dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[i])
+                arrdtMax = f"{dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[i]}, {arrdtMax} "
                 #arrdtMax.append(f"{dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[i]}, ")
-                #print(dgMax.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].max().sort_values(ascending = False).keys().tolist()[i])
 
-            print(f"Les arbres les plus petits font {tailleMin}m et se trouves dans:")
 
             for i in range(len(boucleMin)):
-                arrdtMin = f"{arrdtMin}\n{dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).keys().tolist()[i]}"
-                #arrdtMin.append(f"{dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).keys().tolist()[i]}, ")
-                #print(dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).keys().tolist()[i])
+                if i%3 !=0:
+                    arrdtMin = f"{dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).keys().tolist()[i]}, {arrdtMin}"
+                else:
+                    arrdtMin = f"\n{dgMin.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].min().sort_values(ascending = False).keys().tolist()[i]}, {arrdtMin}"
 
             answer = f"Les arbres les plus hauts font {taille} m et se trouvent dans : {arrdtMax}.\n\nLes arbres les plus petits font {tailleMin} m et se trouvent dans : {arrdtMin}"
 
@@ -754,7 +758,7 @@ def apply():
             # L'arbre le plus haut et le plus bas de chaque arrdt
             # create map widget
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -762,8 +766,10 @@ def apply():
             map_widget.set_position(48.860381, 2.338594)
 
             # Zoom
-            map_widget.set_zoom(13)
+            map_widget.set_zoom(11)
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
+            dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+            dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
             groupe = dataQ1.groupby("ARRONDISSEMENT")
             hauteur = []
             latitude = []
@@ -786,8 +792,7 @@ def apply():
 
             for i in range(len(arbre)):
                 marqueurs[f"{arbre[i]}, {hauteur[i]}m"] = [latitude[i], longitude[i]]
-            print('marqueurs 785 :', marqueurs)
-            affiche_map(marqueurs)
+            affiche_map(marqueurs, zone)
 
 
     #[TOUS, 1, Hauteur]
@@ -818,7 +823,7 @@ def apply():
             dataQ2.insert(0,"ARRONDISSEMENT",listarro)
 
 
-            f, ax = plt.subplots(figsize=(5,5))
+            f, ax = plt.subplots(figsize=(12, 9))
             plt.rc('font', **font)
 
             sns.set_color_codes("pastel")
@@ -830,7 +835,7 @@ def apply():
             sns.set_color_codes("bright")
             sns.barplot(y="MIN", x="ARRONDISSEMENT", data=dataQ2, label='Minimum', color="b")
 
-            ax.legend(ncol=3, loc="upper right", frameon=True)
+            ax.legend(ncol=3, loc="upper right", frameon=True, fontsize='medium')
             ax.set(xlim=(-2,len(listarro)+1),ylim=(0, df_nbrMax*1.2), xlabel="Arrondissement", ylabel="hauteur")
             plt.xlabel('ARRONDISSEMENT', fontsize=12)                               # Titre de l'axe x et taille de police
             plt.ylabel('', fontsize=8)
@@ -839,13 +844,12 @@ def apply():
             sns.despine(right=True, top=True)
             f.patch.set_facecolor(colorg)
             ax.set_facecolor('black')
-            plt.gcf().set_size_inches(5, 4)
+            plt.gcf().set_size_inches(8, 8)
             f.subplots_adjust(bottom=0.40)
             plt.title(f'Hauteur mini, moyenne et maxi des "{data[1]}" par arrondissement', fontsize=11)
-
+            titreGraph=""
             AfficheframeCanvas()
 
-            print('graph ok')
 
 
             #CREATION DU TEXTE -----------------------------------------------------
@@ -864,8 +868,6 @@ def apply():
 
             AfficheframeLabelText()
 
-            print('text ok')
-
 
             #CREATION DE LA MAP ----------------------------------------------------
 
@@ -874,7 +876,7 @@ def apply():
             new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
 
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -903,14 +905,13 @@ def apply():
 
 
                     marqueurs[str(data[1])+"_"+str(i)] = coordonner
-                print("nom_arr", liste_arr )
+
                 for i in liste_arr :
                     if i in appartenance :
                         zone.append(i)
 
             affiche_map(marqueurs, zone)
 
-            print('map ok')
 
 
     #[1, TOUS, Hauteur]
@@ -960,7 +961,7 @@ def apply():
             moyenne.append(int(sum([int(elem) for elem in dataQ3["moyenne"][5:-5]])/len([elem for elem in dataQ3["moyenne"][5:-5]])))
             moyenne.extend([int(elem) for elem in dataQ3["moyenne"][-5:]])
 
-            f, ax = plt.subplots(figsize=(5,5))
+            f, ax = plt.subplots(figsize=(16, 9))
             plt.rc('font', **font)
             sns.set_color_codes("pastel")
             sns.barplot(x=types, y=maxi,label='Maximum', color="b")
@@ -971,7 +972,7 @@ def apply():
             sns.set_color_codes("muted")
             sns.barplot(x=types, y=mini, label="Minimum", color="b")
 
-            ax.legend(ncol=3, loc="upper right", frameon=True)
+            ax.legend(ncol=3, loc="upper right", frameon=True,fontsize='medium')
             ax.set(ylim=(0, max(maxi)*1.2),xlim=(-2, 12), ylabel="HAUTEUR", xlabel=f"ARBRE")
             plt.xlabel('ARBRE', fontsize=12)                               # Titre de l'axe x et taille de police
             plt.ylabel('HAUTEUR', fontsize=8)
@@ -979,38 +980,36 @@ def apply():
             sns.despine(right=True, top=True)
             f.patch.set_facecolor(colorg)
             ax.set_facecolor('black')
-            plt.gcf().set_size_inches(5, 4)
+            plt.gcf().set_size_inches(8, 8)
             f.subplots_adjust(bottom=0.40)
             plt.title(f'Hauteur mini, moyenne et maxi des arbres dans \"{data[0]}\" ', fontsize=11)
-
+            plt.rc('font', **font)
+            titreGraph = ""
             AfficheframeCanvas()
 
 
             #CREATION DU TEXTE -----------------------------------------------------
 
             dg = pandas.read_csv(path , sep = ',', header = 0)
+            dg.drop(dg.index[dg['HAUTEUR (m)']>50], inplace=True)
+            dg.drop(dg.index[dg['HAUTEUR (m)']<2], inplace=True)
             moy_df = dg.groupby(['ARRONDISSEMENT'])['HAUTEUR (m)'].mean().max()
             Arbre_df = dg[(dg['ARRONDISSEMENT']==data[0]) & (dg['LIBELLE FRANCAIS'])]
             taille_max = Arbre_df["HAUTEUR (m)"].sort_values(ascending = False).max()
             #arbremax = [el for el in dg.drop(dg.index[dg['HAUTEUR (m)'] == taille_max], inplace=True)["LIBELLE FRANCAIS"][0:0]]
-            print('taille_max : ', taille_max)
+
 
             dg2 = pandas.read_csv(path , sep = ',', header = 0)
             dg2.drop(dg2.index[dg2['HAUTEUR (m)'] > 50], inplace=True)
             dg2.drop(dg2.index[dg2['HAUTEUR (m)'] < 2], inplace=True)
             dg2.drop(dg2.index[dg2['HAUTEUR (m)'] != taille_max], inplace=True)
             dg2 = dg2.loc[dg2['ARRONDISSEMENT']== data[0]]
-            arbreMax = ""
-            listeArbreMax = []
-            for el in dg2["LIBELLE FRANCAIS"][0:]:
-                if el not in listeArbreMax:
-                    listeArbreMax.append(el)
-                    arbreMax = f"{el}, {arbreMax}"
+
 
 
             taille_min = Arbre_df["HAUTEUR (m)"].sort_values(ascending = False).min()
 
-            answer = f"\nLes arbres de {data[0]} mesurent en moyenne {round(moy_df,2)}m.\n\nLe plus haut mesure {taille_max}m, c'est un {arbreMax} et le plus petit mesure {taille_min}m.\n"
+            answer = f"\nLes arbres de {data[0]} mesurent en moyenne {round(moy_df,2)}m.\n\nLe plus haut mesure {taille_max}m, le plus petit mesure {taille_min}m.\n"
 
             AfficheframeLabelText()
 
@@ -1020,12 +1019,12 @@ def apply():
             # create map widget
             dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
             # Zone affichée de la carte = PARIS
-            map_widget.set_position(48.860381, 2.338594)
+            map_widget.set_position(localisation[data[0]][0], localisation[data[0]][1])
 
             # Zoom
             map_widget.set_zoom(13)
@@ -1045,7 +1044,7 @@ def apply():
 
             #Marqueurs sur tous les arbres select pour l'arrdt selectionné limité à 100
             for arrdt in groupeArdt:
-                print(len(arrdt[1]))
+
                 for i in range(0,min(100, len(arrdt[1]))):
                     marqueurs[f"{arrdt[0]} - {arrdt[1].iloc[i , 4]} - {i+1}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
 
@@ -1099,7 +1098,7 @@ def apply():
             data_one_tous = g[['HAUTEUR (m)']].agg([pandas.Series.mean, pandas.Series.max, pandas.Series.min])
             data_one_tous.columns=['MEAN', 'MAX', 'MIN']
             data_one_tous.insert(0,"TYPE","AUTRE ARBRES \nDANS L'ARRDT")
-            #print("tous tous hauteur", data_one_tous)
+
 
               #####################    tous,tous,hauteur   ###############################
             data_demo_tous_tous=dataQ3.loc[(dataQ3['ARRONDISSEMENT']!= data[0]) & (dataQ3["LIBELLE FRANCAIS"]==data[1]), :]
@@ -1139,7 +1138,7 @@ def apply():
                 ####################### GRAPHE   #################################"
 
 
-            f, ax = plt.subplots(figsize=(5,5))
+            f, ax = plt.subplots(figsize=(16, 9))
             plt.rc('font', **font)
             plt.title(f'Hauteur mini, moyenne et maxi des "{data[1]}" dans "{data[0]}"', fontsize=10)
             sns.set_color_codes("pastel")
@@ -1160,9 +1159,9 @@ def apply():
             sns.despine(right=True, top=True)
             f.patch.set_facecolor(colorg)
             ax.set_facecolor('black')
-            plt.gcf().set_size_inches(5, 4)
+            plt.gcf().set_size_inches(8, 8)
             f.subplots_adjust(bottom=0.40)
-
+            titraGraph = ""
             AfficheframeCanvas()
 
 
@@ -1174,8 +1173,8 @@ def apply():
             new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
             new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
 
-            map_widget = TkinterMapView(frameTheMap, width=400, height=400, corner_radius=0)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
+            map_widget.pack(  pady = 10, padx = 10, )
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -1219,13 +1218,13 @@ def apply():
             taille_min = dg["HAUTEUR (m)"].sort_values(ascending = False).min()
 
 
-            answer = f'Les arbres : " {data[1]} " de {data[0]} font en moyenne {round(moy_df, 2)}m. \n le plus haut fait {taille_max}m et le plus petit fait {taille_min}m.'
+            answer = f'\nLes arbres : " {data[1]} " de {data[0]} font en moyenne {round(moy_df, 2)}m.\n\n le plus haut fait {taille_max}m et le plus petit fait {taille_min}m.\n'
             AfficheframeLabelText()
 
 
 
     #[TOUS, TOUS, Type] = Q3
-    if data[0] == 'TOUS' and data[1] == 'TOUS' and data[2] == "Type":
+    if data[0] == 'TOUS' and data[2] == "Type":
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
@@ -1293,8 +1292,10 @@ def apply():
             #plt.axis('equal')
             #plt.savefig('PieChart02.png')
             #plt.show()
-
-
+            if data[1] != 'TOUS':
+                titreGraph = "\nTous les arbres sont pris dans la requête\n\n Type d'arbres tout arrondissement confondu"
+            else:
+                titreGraph = "\nType d'arbres tout arrondissement confondu"
             AfficheframeCanvas()
 
 
@@ -1307,8 +1308,10 @@ def apply():
             df_nbrMax2 = dataQ.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False)[0]
             df_arrdMin2 = dataQ.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False).keys()[-1]
             df_nbrMin2 = dataQ.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False)[-1]
-
-            answer = f"L'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { df_nbrMin2} fois"
+            if data[1] != 'TOUS':
+                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+            else:
+                answer = f"\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
 
 
             AfficheframeLabelText()
@@ -1320,7 +1323,7 @@ def apply():
 
             # create map widget
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
@@ -1343,7 +1346,6 @@ def apply():
 
             # Création de marqueurs sur tous les arbres
             for arrdt in groupeArdt:
-                print(arrdt[0], len(arrdt[1]))
                 for i in range(0,len(arrdt[1])):
                     marqueurs[f"{arrdt[1].iloc[i , 4]}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
 
@@ -1351,7 +1353,7 @@ def apply():
 
 
     #[1, TOUS, Type]
-    if data[0] != 'TOUS' and data[1] == 'TOUS' and data[2] == "Type":
+    if data[0] != 'TOUS' and data[2] == "Type":
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
@@ -1423,7 +1425,10 @@ def apply():
             #plt.savefig('PieChart02.png')
             #plt.show()
 
-
+            if data[1] != 'TOUS':
+                titreGraph = f"\nTous les arbres sont pris dans la requête\n\nType d'arbres dans {data[0].upper()}"
+            else:
+                titreGraph = f"\nType d'arbres dans {data[0].upper()}"
             AfficheframeCanvas()
 
             #CREATION DU TEXTE -----------------------------------------------------
@@ -1436,10 +1441,11 @@ def apply():
             df_nbrMin2 = dg.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False)[-1]
             dg.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False)
 
-            print(f"L'arbre le plus présent dans {data[0]} est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\nL'arbre le moins présent dans {data[0]} est le {df_arrdMin2} apparaissant {df_nbrMin2} fois")
 
-
-            answer = f"L'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { df_nbrMin2} fois"
+            if data[1] != 'TOUS':
+                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+            else:
+                answer = f"\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
 
 
             AfficheframeLabelText()
@@ -1451,15 +1457,15 @@ def apply():
 
             # create map widget
             map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
-            map_widget.pack(  pady = 10, padx = 10, side=RIGHT)
+            map_widget.pack(  pady = 10, padx = 10)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
 
             # Zone affichée de la carte = PARIS
-            map_widget.set_position(48.860381, 2.338594)
+            map_widget.set_position(localisation[data[0]][0], localisation[data[0]][1])
 
             # Zoom
-            map_widget.set_zoom(11)
+            map_widget.set_zoom(12)
 
             dataQ = pandas.read_csv(path , sep = ',', header = 0)
             dataQ.drop(dataQ.index[dataQ['HAUTEUR (m)']>50], inplace=True)
@@ -1475,7 +1481,7 @@ def apply():
 
             # Création de marqueurs sur tous les arbres
             for arrdt in groupeArdt:
-                print(arrdt[0], len(arrdt[1]))
+
                 for i in range(0,len(arrdt[1])):
                     marqueurs[f"{arrdt[1].iloc[i , 4]}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
 
@@ -1990,8 +1996,8 @@ frameImage.pack()
 
 
 frameGraph = Frame(frameBas, bg=colorg, height=500, width=600)
+frameGraph.pack(fill=BOTH, expand=True)
 frameGraph.pack(side=LEFT, fill=BOTH, expand=True)
-frameGraph.pack(side=LEFT)
 frameGraph.pack_propagate(False)
 
 frameTitreGraph = Frame(frameGraph, bg=colorg,)
@@ -2004,7 +2010,7 @@ titreGraph.pack(side=BOTTOM, pady = 5)
 #frameGraph = Frame(frameGauche, bg=colorg, height = 500, width = 400, pady = 5)
 #frameGraph.pack( side=BOTTOM,fill=BOTH, expand=True)
 frameGraph = Frame(frameGraph, bg=colorg, height = 500, pady = 5)
-frameGraph.pack( side=TOP, fill=X, expand=False)
+frameGraph.pack( side=TOP, fill=BOTH, expand=True)
 
 
 
@@ -2037,8 +2043,8 @@ titreMap.pack(side=LEFT, padx=10, pady = 5)
 
 ##labelImage2 = Label(frameTheMap, image = img)
 ##labelImage2.pack()
-frameTheMap = Frame(frameMap, bg=colorm, height = 500, pady = 5)
-frameTheMap.pack(side=TOP,fill=X, expand=True)
+frameTheMap = Frame(frameMap, bg=colorm, height = 500, pady = 15)
+frameTheMap.pack(side=TOP,fill=BOTH, expand=True)
 
 
 
