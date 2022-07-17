@@ -2024,7 +2024,7 @@ titreGraph.pack(side=LEFT, pady = 5)
 
 #frameGraph = Frame(frameGauche, bg=colorg, height = 364, width = 400, pady = 5)
 frameGraph = Frame(frameGauche, bg=colorg, height = 500, width = 400, pady = 5)
-frameGraph.pack( side=BOTTOM,fill=BOTH, expand=False)
+frameGraph.pack( side=BOTTOM,fill=BOTH, expand=True)
 
 '''
 frameImage = Frame(frameReponseTexte)
@@ -2066,7 +2066,7 @@ frameImage.pack()
 #---------- BOTTOM : MAP  ----------
 
 #frameMap = Frame(frameDroite, bg='White', height=500, width=500)
-frameMap = Frame(frameDroite, bg=colorm, height=410, width=600)
+frameMap = Frame(frameDroite, bg=colorm, height=500, width=600)
 frameMap.pack_propagate(False)
 frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
 ##frameImageMap = Label(frameMap, image = img2)
