@@ -9,6 +9,7 @@ import PIL.Image
 
 from tkinter import *
 from tkinter import messagebox
+import webbrowser
 import pandas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -118,6 +119,14 @@ new_df = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.c
 arr_df = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\arrondissements.csv", sep = ';', header = 0)
 arr_departement = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\departements-et-collectivites-doutre-mer-france.csv", sep = ';', header = 0)
 
+# Fichiers Image
+imgArbre = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgArbre.png")
+imgFeuille = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgFeuille.png")
+
+# google api KEY
+
+apiKey = "AIzaSyAgeWLaNWCpA42a7LBytovrZbHVLPZNYz8"
+
 
 #Récupération de la liste des arrondissements issus du CSV
 arrondissements = list(new_df['ARRONDISSEMENT'].unique())
@@ -206,7 +215,7 @@ def AfficheframeCanvas():
 
 #SEB
 def AfficheframeCanvas():
-    ## Pack la frameCanvas dans frameGraph
+    ## Pack la frameCanvas dans frameGraph pour afficher le graphique
     global f, frameCanvas
     frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=354)
     labelTitre = Label(frameCanvas, text=titreGraph, bg=colorg, font=("Arial", 13))
@@ -231,7 +240,7 @@ def AfficheframeLabelText():
 
 #SEB
 def AfficheframeLabelText():
-    ## Pack la frameLabelText dans frameReponseTexte
+    ## Pack la frameLabelText dans frameReponseTexte pour afficher la reponse texte
     global answer, frameLabelText, frameLabelImage
     frameLabelImage = Label(frameReponseTexte, image = img)
     frameLabelImage.pack(side = LEFT, fill=BOTH, expand=True)
@@ -239,28 +248,29 @@ def AfficheframeLabelText():
     frameLabelText.place(relx=.5, rely=.5,anchor= CENTER)
 
 def noData():
-        global frameCanvas, answer, frameLabelText, frameLabelImage, frameTheMap, map_widget
-        frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=354)
-        frameCanvas.pack(fill=BOTH, expand=True)
-        label = Label(frameCanvas, text="Aucune donnée ne correspond à votre recherche")
-        label.pack()
+    ## Affiche message "noData dans carte, map et text
+    global frameCanvas, answer, frameLabelText, frameLabelImage, frameTheMap, map_widget
+    frameCanvas = Frame(frameGraph, bg=colorg, width=400, height=354)
+    frameCanvas.pack(fill=BOTH, expand=True)
+    label = Label(frameCanvas, text="Aucune donnée ne correspond à votre recherche")
+    label.pack()
 
-        frameLabelImage = Label(frameReponseTexte, image = img)
-        frameLabelImage.pack(side = LEFT, fill=BOTH, expand=True)
-        frameLabelText = Label(frameLabelImage, text="Aucune donnée ne correspond à votre recherche", bg=colorb)
-        frameLabelText.place(relx=.5, rely=.5,anchor= CENTER)
+    frameLabelImage = Label(frameReponseTexte, image = img)
+    frameLabelImage.pack(side = LEFT, fill=BOTH, expand=True)
+    frameLabelText = Label(frameLabelImage, text="Aucune donnée ne correspond à votre recherche", bg=colorb)
+    frameLabelText.place(relx=.5, rely=.5,anchor= CENTER)
 
-        map_widget = Frame(frameTheMap, bg=colorm, width=400, height=354)
-        map_widget.pack(fill=BOTH, expand=True)
-        label2 = Label(map_widget, text="Aucune donnée ne correspond à votre recherche")
-        label2.pack()
+    map_widget = Frame(frameTheMap, bg=colorm, width=400, height=354)
+    map_widget.pack(fill=BOTH, expand=True)
+    label2 = Label(map_widget, text="Aucune donnée ne correspond à votre recherche")
+    label2.pack()
 
 
 
 def apply():
     ## Affiche les réponses, graphes et map relatifs à la demande
 
-    # A chaque demande del'utilisateur : Destruction des Graphe, Map et Label précédents
+    # A chaque demande de l'utilisateur : Destruction des Graphe, Map et Label précédents
     global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage, frameImage, marqueurs, zone, data, titreMap, titreGraph
     try:
         frameImage.destroy()
@@ -573,7 +583,7 @@ def apply():
             nom_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()[-1]
             nbr_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().tolist()[-1]
 
-            answer = (f"\nIl y a {separateurMilliers(count)} arbres dans {data[0].upper()} \n\nL'arbre le plus présent dans {data[0] } est le {nom_df} avec {separateurMilliers(nbr_df)} specimens\n\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {separateurMilliers(nbr_df_min)} specimen.\n" )
+            answer = (f"\nIl y a {separateurMilliers(count)} arbres dans {data[0].upper()} \n\nL'arbre le plus présent dans {data[0] } est le {nom_df} avec {separateurMilliers(nbr_df)} specimen\n\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {separateurMilliers(nbr_df_min)} specimen.\n" )
             AfficheframeLabelText()
 
 
@@ -662,7 +672,7 @@ def apply():
             dg = new_df_Q2.query('`ARRONDISSEMENT` == @data[0] & `LIBELLE FRANCAIS` == @data[1]')
             nbr = dg["ARRONDISSEMENT"].value_counts().max()
 
-            answer = f"\nDans l'arrondissement de {data[0]} il y a {nbr} arbre(s) de type {data[1]}.\n"
+            answer = f"\nDans  {data[0]} il y a {nbr} arbre(s) de type {data[1].upper()}.\n"
 
             AfficheframeLabelText()
 
@@ -1286,7 +1296,7 @@ def apply():
             plt.subplots(figsize=(12, 9))
             plt.rc('font', **font)
             plt.gcf().set_size_inches(5, 5)
-            plt.title(f"Type d'arbres tout arrondissement confondu", fontsize=11, color = "black")
+            plt.title(f"Type d'arbres tous les arrondissements confondus", fontsize=11, color = "black")
             ax.pie(sizes, radius=1, labels=labels,autopct='%0.2f%%', shadow=True, colors=colors, explode=explode)
             f.patch.set_facecolor(colorg)
 
@@ -1298,9 +1308,9 @@ def apply():
             #plt.savefig('PieChart02.png')
             #plt.show()
             if data[1] != 'TOUS':
-                titreGraph = "\nTous les arbres sont pris dans la requête\n\n Type d'arbres tout arrondissement confondu"
+                titreGraph = "\nTous les arbres sont pris dans la requête\n\n Type d'arbres tous les arrondissements confondus"
             else:
-                titreGraph = "\nType d'arbres tout arrondissement confondu"
+                titreGraph = "\nType d'arbres tous les arrondissements confondus"
             AfficheframeCanvas()
 
 
@@ -1314,9 +1324,9 @@ def apply():
             df_arrdMin2 = dataQ.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False).keys()[-1]
             df_nbrMin2 = dataQ.groupby(['LIBELLE FRANCAIS'])['ARRONDISSEMENT'].count().sort_values(ascending=False)[-1]
             if data[1] != 'TOUS':
-                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissements confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissements confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
             else:
-                answer = f"\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+                answer = f"\nL'arbre le plus présent dans tous les arrondissements confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissements confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
 
 
             AfficheframeLabelText()
@@ -1448,7 +1458,7 @@ def apply():
 
 
             if data[1] != 'TOUS':
-                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+                answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissements confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissements confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
             else:
                 answer = f"\nL'arbre le plus présent dans {data[0].upper()} est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans {data[0].upper()} est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
 
@@ -1543,6 +1553,7 @@ def apply():
 
 # Fonctions pour la mise à jour du texte des bouton en fonction de la sélection
 def updateBoutonArrdt():
+    ## Affiche l'arrdt selectionné sur le bouton correspondant
     global ArrondissemenrSelect, boutonArrdt
     ArrondissemenrSelect = data[0].upper()
     boutonArrdt.destroy()
@@ -1550,6 +1561,7 @@ def updateBoutonArrdt():
     boutonArrdt.pack(side=TOP)
 
 def updateBoutonArbre():
+    ## Affiche l'arbre selectionné sur le bouton correspondant
     global boutonArbre, ArbreSelect
     ArbreSelect = data[1].upper()
     boutonArbre.destroy()
@@ -1557,6 +1569,7 @@ def updateBoutonArbre():
     boutonArbre.pack(side=TOP)
 
 def updateBoutonCritere():
+    ## Affiche le critère selectionné sur le bouton correspondant
     global CritereSelect, boutonCritere
     CritereSelect = data[2].upper()
     boutonCritere.destroy()
@@ -1566,6 +1579,7 @@ def updateBoutonCritere():
 
 # Fonctions rattachées aux boutons Q1, Q2 et Q3
 def demande1():
+    ## Affiche la réponse pour la Q1
     global data
     data=["TOUS", "TOUS", "Quantité"]
     updateBoutonArrdt()
@@ -1575,6 +1589,7 @@ def demande1():
     apply()
 
 def demande2():
+    ## Affiche la réponse pour la Q2
     global data
     data=["TOUS", "TOUS", "Hauteur"]
     #updateTexteSelection()
@@ -1584,6 +1599,7 @@ def demande2():
     apply()
 
 def demande3():
+    ## Affiche la réponse pour la Q3
     global data
     data=["TOUS", "TOUS", "Type"]
     #updateTexteSelection()
@@ -1633,6 +1649,7 @@ def selectCritere(event):
 
 # Fonctions pour créer les menus déroulant
 def creationListeArrdt():
+    ## Affiche les ardt dispo dans le menu déroulant à partir du csv
     global listeArrdt, arrdtIsVisible, current_arrdt
     if arrdtIsVisible == True:
         listeArrdt.destroy()
@@ -1649,6 +1666,7 @@ def creationListeArrdt():
         arrdtIsVisible = True
 
 def creationListeArbre():
+    ## Affiche les arbres dispo dans le menu déroulant à partir du csv
     global listeArbre, arbreIsVisible
     if arbreIsVisible == True:
         listeArbre.destroy()
@@ -1665,6 +1683,7 @@ def creationListeArbre():
         arbreIsVisible = True
 
 def creationListeCritere():
+    ## Affiche les critères dispo
     global listeCritere, critereIsVisible
     if critereIsVisible == True:
         listeCritere.destroy()
@@ -1682,6 +1701,18 @@ def creationListeCritere():
 
 def mapFenetre():
     ## Affiche une MAP dans une fenêtre séparée
+
+    '''
+    markers = ""
+    for el in marqueurs:
+
+        markers = f"{markers}&markers=color:green%7Clabel:{el}%7C{marqueurs[el][0]},{marqueurs[el][1]}"
+
+    urls=f"https://maps.googleapis.com/maps/api/staticmap?center=Paris,France&size=800x800&style=feature:poi|visibility:off{markers}&key={apiKey}"
+
+    webbrowser.open(urls)
+    '''
+
     global mapFenetre, marqueurs, zone, bigMap
     try:
         mapFenetre.destroy()
@@ -1703,6 +1734,33 @@ def mapFenetre():
         for i, j  in marqueurs.items():
             arr.append(i)
             bigMap.set_marker(j[0], j[1] , text= i, marker_color_circle="#3a5a40", marker_color_outside="#a3b18a")
+
+    zone= [
+        'PARIS 20E ARRDT',
+        'PARIS 19E ARRDT',
+        'PARIS 18E ARRDT',
+        'PARIS 17E ARRDT',
+        'PARIS 16E ARRDT',
+        'PARIS 15E ARRDT',
+        'PARIS 14E ARRDT',
+        'PARIS 13E ARRDT',
+        'PARIS 12E ARRDT',
+        'PARIS 11E ARRDT',
+        'PARIS 10E ARRDT',
+        'PARIS 9E ARRDT',
+        'PARIS 8E ARRDT',
+        'PARIS 7E ARRDT',
+        'PARIS 6E ARRDT',
+        'PARIS 5E ARRDT',
+        'PARIS 4E ARRDT',
+        'PARIS 3E ARRDT',
+        'PARIS 2E ARRDT',
+        'PARIS 1ER ARRDT',
+        'BOIS DE BOULOGNE',
+        'BOIS DE VINCENNES',
+    ]
+
+
     for el in zone :
         res = []
         polygo =[]
@@ -1725,6 +1783,7 @@ def mapFenetre():
             bigMap.set_polygon(polygo)
     center(mapFenetre)
 
+
     def on_closing():
         mapFenetre.destroy()
         mapFenetre.quit()
@@ -1735,13 +1794,13 @@ def mapFenetre():
 
 
 
+
+
 # SEB
 mainFenetre = Tk()
 mainFenetre.title('JSON STAT ARBRES')
 mainFenetre.geometry('1200x790')
-imgArbre = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgArbre.png")
 img = ImageTk.PhotoImage(imgArbre)
-imgFeuille = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgFeuille.png")
 resize_image = imgFeuille.resize((1200, 675))
 img2 = ImageTk.PhotoImage(resize_image)
 
