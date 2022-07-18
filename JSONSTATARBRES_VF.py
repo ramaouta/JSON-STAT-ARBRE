@@ -98,6 +98,10 @@ critereIsVisible = False
 data=["TOUS", "TOUS", "Quantité"]
 
 
+# Initialisation des variables marqueurs et zone relatives à la MAP
+marqueurs = {}
+zone = []
+
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 #                 DATA
@@ -158,6 +162,7 @@ def affiche_map(marqueurs = {},zone = []):
             res = eval(res['"coordinates"'])
             res = res[0]
             #polygo =[]
+        '''
         if el in departement:
             a = arr_departement.loc[(arr_departement ["Nom Officiel Département Majuscule"] == departement[el] ) & (arr_departement["viewport"])]
             liste = a["viewport"].to_list()
@@ -168,7 +173,7 @@ def affiche_map(marqueurs = {},zone = []):
             # eval("string") → change la string en liste
             res = eval(res['coordinates"'])
             res = res[0]
-
+        '''
         if  len(res) > 0:
             for coord in res:
                 points= [coord[1],coord[0]]
@@ -198,6 +203,7 @@ def AfficheframeCanvas():
     canvas.draw()
     frameCanvas.pack_propagate(False)
     canvas.get_tk_widget().pack()
+
 
 #MANU
 '''
@@ -244,10 +250,10 @@ def apply():
     # A chaque demande del'utilisateur : Destruction des Graphe, Map et Label précédents
     global frameCanvas, f, map_widget, frameLabelText, answer, new_df, frameLabelImage, frameImage, marqueurs, zone, data, titreMap
     try:
-        print(1)
         frameImage.destroy()
-        frameLabelText.destroy()
+        #titreMap.destroy()
         frameCanvas.destroy()
+        frameLabelText.destroy()
         map_widget.destroy()
         frameLabelText.destroy()
         frameLabelImage.destroy()
@@ -283,7 +289,7 @@ def apply():
             plt.xlabel('ARRONDISSEMENT', fontsize=12)                               # Titre de l'axe x et taille de police
             plt.ylabel('COUNT', fontsize=8)                                         # Titre de l'axe y et taille de police
             f.subplots_adjust(bottom=0.40)                                          # Espace entre le bas du graphe et le bas de "l'image" graphe
-            plt.gcf().set_size_inches(5, 4)                                         # Taille de "l'image" graphe
+            plt.gcf().set_size_inches(8, 8)                                         # Taille de "l'image" graphe
             sns.barplot(x = 'ARRONDISSEMENT', y = 'COUNT',data = dataQ1)
             plt.title(f"Quantité d'arbres par arrondissement", fontsize=13)         # Titre du graphique
 
@@ -1167,7 +1173,7 @@ def apply():
             new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
             new_df_data.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
 
-            map_widget = TkinterMapView(frameMap, width=400, height=400, corner_radius=0)
+            map_widget = TkinterMapView(frameMap, width=600, height=400, corner_radius=20)
             map_widget.pack(  pady = 10, padx = 10, side=TOP)
 
             map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
@@ -1336,6 +1342,7 @@ def apply():
 
             # Création de marqueurs sur tous les arbres
             for arrdt in groupeArdt:
+                print(arrdt[0], len(arrdt[1]))
                 for i in range(0,len(arrdt[1])):
                     marqueurs[f"{arrdt[1].iloc[i , 4]}"] = [arrdt[1].iloc[i , 8], arrdt[1].iloc[i , 9]]
 
@@ -1387,7 +1394,7 @@ def apply():
 
             labels = espece
             sizes = pourcentage
-            listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9']
+            listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9', '#f9844a', '#f9844a', '#f9844a', '#f9844a', '#f9844a']
             colors = ['#f94144']
             listeExplode = [0.2]
             for i in range(len(labels)-1):
@@ -1431,7 +1438,7 @@ def apply():
             print(f"L'arbre le plus présent dans {data[0]} est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\nL'arbre le moins présent dans {data[0]} est le {df_arrdMin2} apparaissant {df_nbrMin2} fois")
 
 
-            answer = f"L'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { df_nbrMin2} fois"
+            answer = f"L'arbre le plus présent dans {data[0]} est le {df_arrdMax2} apparaissant {df_nbrMax2} fois\nL'arbre le moins présent dans {data[0]} est le {df_arrdMin2} apparaissant {df_nbrMin2} fois"
 
 
             AfficheframeLabelText()
@@ -1477,50 +1484,88 @@ def apply():
 
 
 
+# Fonctions pour la mise à jour du texte des bouton en fonction de la sélection
+def updateBoutonArrdt():
+    global ArrondissemenrSelect, boutonArrdt
+    ArrondissemenrSelect = data[0].upper()
+    boutonArrdt.destroy()
+    boutonArrdt = Button(frameArrdt, text=ArrondissemenrSelect, bg=colorb, command=creationListeArrdt, width=17)
+    boutonArrdt.pack(side=TOP)
+
+def updateBoutonArbre():
+    global boutonArbre, ArbreSelect
+    ArbreSelect = data[1].upper()
+    boutonArbre.destroy()
+    boutonArbre = Button(frameArbre, text=ArbreSelect, bg=colorb, command=creationListeArbre, width=17)
+    boutonArbre.pack(side=TOP)
+
+def updateBoutonCritere():
+    global CritereSelect, boutonCritere
+    CritereSelect = data[2].upper()
+    boutonCritere.destroy()
+    boutonCritere = Button(frameCritere, text=CritereSelect, bg=colorb, command=creationListeCritere, width=17)
+    boutonCritere.pack(side=TOP)
 
 
-
+# Fonctions rattachées aux boutons Q1, Q2 et Q3
 def demande1():
     global data
     data=["TOUS", "TOUS", "Quantité"]
+    updateBoutonArrdt()
+    updateBoutonArbre()
+    updateBoutonCritere()
+    #updateTexteSelection()
     apply()
 
 def demande2():
     global data
     data=["TOUS", "TOUS", "Hauteur"]
+    #updateTexteSelection()
+    updateBoutonArrdt()
+    updateBoutonArbre()
+    updateBoutonCritere()
     apply()
 
 def demande3():
     global data
     data=["TOUS", "TOUS", "Type"]
+    #updateTexteSelection()
+    updateBoutonArrdt()
+    updateBoutonArbre()
+    updateBoutonCritere()
     apply()
 
 
-
+# Fonctions pour récupérer le choix de l'utilisateur et mettre à jour la demande
 def selectArrdt(event):
     ## Mise à jour de l'arrondissement sélectionné dans la demande
     global listeArrdt, data
     arrdt = listeArrdt.selection_get()
     creationListeArrdt()
     data[0] = arrdt
+    updateBoutonArrdt()
+    #updateTexteSelection()
     print('data : ', data)
 
 def selectArbre(event):
     ## Mise à jour du type d'arbre sélectionné dans la demande
-    global listeArbre, data
+    global listeArbre, data, boutonArbre, ArbreSelect
     arbre = listeArbre.selection_get()
     creationListeArbre()
     data[1] = arbre
+    updateBoutonArbre()
+    #updateTexteSelection()
     print('data : ', data)
 
 def selectCritere(event):
     ## Mise à jour du critère sélectionné dans la demande
-    global listeCritere, data
+    global listeCritere, data, boutonCritere, CritereSelect
     critere = listeCritere.selection_get()
     creationListeCritere()
     data[2] = critere
+    updateBoutonCritere()
+    #updateTexteSelection()
     print('data : ', data)
-
 
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
@@ -1528,6 +1573,8 @@ def selectCritere(event):
 #-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
+
+# Fonctions pour créer les menus déroulant
 def creationListeArrdt():
     global listeArrdt, arrdtIsVisible, current_arrdt
     if arrdtIsVisible == True:
@@ -1541,8 +1588,7 @@ def creationListeArrdt():
             index = arrondissements.index(el)
             listeArrdt.insert(index +2, el)
             listeArrdt.bind('<<ListboxSelect>>', selectArrdt)
-        listeArrdt.pack()
-
+        listeArrdt.pack(side=BOTTOM)
         arrdtIsVisible = True
 
 def creationListeArbre():
@@ -1558,7 +1604,7 @@ def creationListeArbre():
             index = arbres.index(el)
             listeArbre.insert(index +2, el)
             listeArbre.bind('<<ListboxSelect>>', selectArbre)
-        listeArbre.pack()
+        listeArbre.pack(side=BOTTOM)
         arbreIsVisible = True
 
 def creationListeCritere():
@@ -1572,11 +1618,12 @@ def creationListeCritere():
         listeCritere.insert(2, "Hauteur")
         listeCritere.insert(3, "Type")
         listeCritere.bind('<<ListboxSelect>>', selectCritere)
-        listeCritere.pack()
+        listeCritere.pack(side=BOTTOM)
         critereIsVisible = True
 
 
 def mapFenetre():
+    ## Affiche une MAP dans une fenêtre séparée
     global mapFenetre, marqueurs, zone, bigMap
     try:
         mapFenetre.destroy()
@@ -1598,9 +1645,12 @@ def mapFenetre():
         for i, j  in marqueurs.items():
             arr.append(i)
             bigMap.set_marker(j[0], j[1] , text= i, marker_color_circle="#3a5a40", marker_color_outside="#a3b18a")
-
     for el in zone :
-            a = arr_df.loc[(arr_df ["Numéro d’arrondissement"] == el ) & (arr_df["Geometry X Y"])]
+        res = []
+        polygo =[]
+
+        if el in appartenance:
+            a = arr_df.loc[(arr_df ["Numéro d’arrondissement"] == appartenance[el] ) & (arr_df["Geometry X Y"])]
             liste = a["Geometry"].to_list()
             string = liste[0][1:-1]
             # change une string en dictionnaire
@@ -1611,7 +1661,6 @@ def mapFenetre():
             res = res[0]
             polygo =[]
             for coord in res:
-                print(coord)
                 points= [coord[1],coord[0]]
                 polygo.append(tuple(points))
                 #on a bien un dictionnaire avec des valeur en listes
@@ -1626,13 +1675,126 @@ def mapFenetre():
     mapFenetre.mainloop()
 
 
+# MANU
+'''
+mainFenetre = Tk()
+mainFenetre.title('JSON STAT ARBRES')
+mainFenetre.geometry('1200x900')
+img1 = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgArbre.png")
+img = ImageTk.PhotoImage(img1)
+imgFeuille = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgFeuille.png")
+img2 = ImageTk.PhotoImage(imgFeuille)
+#bg = PhotoImage(file = "ImgFeuille.png")
+#-----------------------------------------------------------------------
+#                 FRAME GAUCHE
+#-----------------------------------------------------------------------
+#frameGauche = Frame(mainFenetre, bg='Red',)
+frameGauche = Frame(mainFenetre, bg=colorg,)
+frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
+#---------- TOP : DEMANDE----------
+#frameDemande = Frame(frameGauche, bg='Blue', height = 500)
+frameDemande = Frame(frameGauche, bg=color, height = 600, width=600)
+frameDemande.pack( fill=BOTH, expand=True,)
+canvas1 = Canvas( frameDemande, )
+canvas1.pack(fill = "both", expand = True)
+canvas1.create_image( 0, 0, image = img2, anchor = "nw")
+canvas1.grid_rowconfigure(0, weight=5)
+canvas1.grid_rowconfigure(1, weight=1)
+canvas1.grid_columnconfigure(0, weight=1)
+canvas1.grid_columnconfigure(1, weight=1)
+canvas1.grid_columnconfigure(2, weight=1)
+canvas1.grid_columnconfigure(3, weight=1)
+canvas1.grid_columnconfigure(4, weight=1)
+canvas1.grid_columnconfigure(5, weight=1)
+canvas1.grid_columnconfigure(6, weight=1)
+canvas1.grid_columnconfigure(7, weight=1)
+canvas1.grid_columnconfigure(8, weight=1)
+canvas1.grid_columnconfigure(9, weight=1)
+canvas1.grid_columnconfigure(10, weight=1)
+#frameMenu = Frame(frameDemande, bg="Pink",)
+frameMenu = Frame(frameDemande, bg=color,)
+frameMenu.pack(side=TOP)
+# Arrdt
+#frameArrdt = Frame(frameMenu, bg="Grey", width=500)
+frameArrdt = Frame(canvas1, bg=color, width=500, height=200)
+frameArrdt.grid(row=0, column=1, sticky=N, columnspan=3, pady=5)
+boutonArrdt = Button(frameArrdt, text="Arrondissement", bg=colorb, command=creationListeArrdt, width=17)
+boutonArrdt.pack(side=TOP)
+listeArrdt = Listbox(frameArrdt, width=20,)
+listeArrdt.pack()
+listeArrdt.destroy()
+#Arbre
+#frameArbre = Frame(frameMenu, bg="Grey", width=500)
+frameArbre = Frame(canvas1, bg=color, width=500, height=200)
+frameArbre.grid(row=0, column=4, sticky=N, columnspan=3, pady=5)
+boutonArbre = Button(frameArbre, text="Arbre", bg=colorb, command=creationListeArbre, width=17)
+boutonArbre.pack(side=TOP)
+#Critère
+#frameCritere = Frame(frameMenu, bg="Grey", width=500)
+frameCritere = Frame(canvas1, bg=color, width=500, height=200)
+frameCritere.grid(row=0, column=7, sticky=N, columnspan=3, pady=5)
+boutonCritere = Button(frameCritere, text="Critere", bg=colorb, command=creationListeCritere, width=17)
+boutonCritere.pack(side=TOP)
+#BoutonAPPLY
+#frameBouton = Frame(frameDemande, bg="Orange",)
+#frameBouton = Frame(frameDemande, bg=color,)
+#frameBouton.pack(side=BOTTOM,  pady=20, padx=20)
+boutonApply = Button(canvas1, text="APPLY", command=apply, bg=colorb)
+boutonApply.grid(row=1, column=8, sticky=S, pady=5)
+boutonQ1 = Button(canvas1, text="Q1", command = demande1, bg=colorb)
+boutonQ1.grid(row=1, column=2, sticky=S, pady=5)
+boutonQ2 = Button(canvas1, text="Q2", command = demande2, bg=colorb)
+boutonQ2.grid(row=1, column=4, sticky=S, pady=5)
+boutonQ3 = Button(canvas1, text="Q3", command = demande3, bg=colorb)
+boutonQ3.grid(row=1, column=6, sticky=S, pady=5)
+#---------- BOTTOM : GRAPHE ----------
+#frameGraph = Frame(frameGauche, bg='Black', height = 500, width = 500)
+#frameGraph = Frame(frameGauche, bg=color, height = 500, width = 600)
+#frameGraph.pack( fill=BOTH, expand=False)
+frameTitreGraph = Frame(frameGauche, bg=colorg, height=500)
+frameTitreGraph.pack(side=BOTTOM, expand=False)
+titreGraph = Button(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
+titreGraph.pack(side=LEFT, pady = 5)
+frameGraph = Frame(frameGauche, bg=colorg, height = 600, width = 450)
+#frameGraph.pack( fill=BOTH, expand=False)
+frameGraph.pack( expand=False)
+#-----------------------------------------------------------------------
+#                 FRAME DROITE
+#-----------------------------------------------------------------------
+#frameDroite = Frame(mainFenetre, bg='Green')
+frameDroite = Frame(mainFenetre, bg=color,)
+frameDroite.pack(side=RIGHT, expand=True, fill=BOTH)
+#---------- TOP : REPONSE TEXTE ----------
+#frameReponseTexte = Frame(frameDroite, bg='Yellow')
+#frameReponseTexte = Frame(frameDroite, bg=color, width = 600)
+#frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
+frameReponseTexte = Frame(frameDroite, bg=color, width = 600)
+frameReponseTexte.pack_propagate(False)
+frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
+frameImage = Label(frameReponseTexte, image = img)
+frameImage.pack()
+#---------- BOTTOM : MAP  ----------
+#frameMap = Frame(frameDroite, bg='White', height=500, width=500)
+frameMap = Frame(frameDroite, bg=colorm, height=700, width=600)
+frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
+frameTitreMap = Frame(frameMap, bg=colorm,)
+frameTitreMap.pack(side=BOTTOM)
+titreMap = Button(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30, command=mapFenetre)
+titreMap.pack(side=LEFT, padx=10, pady = 5)
+frameMap = Frame(frameMap, bg=colorm,)
+frameMap.pack(side=TOP)
+'''
+
+
+# SEB
 mainFenetre = Tk()
 mainFenetre.title('JSON STAT ARBRES')
 mainFenetre.geometry('1200x790')
 imgArbre = PIL.Image.open("ImgArbre.png")
 img = ImageTk.PhotoImage(imgArbre)
 imgFeuille = PIL.Image.open("ImgFeuille.png")
-img2 = ImageTk.PhotoImage(imgFeuille)
+resize_image = imgFeuille.resize((1200, 675))
+img2 = ImageTk.PhotoImage(resize_image)
 
 #-----------------------------------------------------------------------
 #                 FRAME GAUCHE
