@@ -50,7 +50,7 @@ localisation= {
     'VAL-DE-MARNE': [48.7839795,2.468223],
 }
 
-
+# Dictionnaire de correspondance csv new_arbres / csv arrondissements
 appartenance= {
     'PARIS 20E ARRDT': 20,
     'PARIS 19E ARRDT': 19,
@@ -76,6 +76,7 @@ appartenance= {
     'BOIS DE VINCENNES': 12,
     }
 
+# Dictionnaire de correspondance csv new_arbres / csv départements ...
 departement = {
     'HAUTS-DE-SEINE':"HAUTS DE SEINE",
     'SEINE-SAINT-DENIS': "SEINE SAINT DENIS",
@@ -111,7 +112,7 @@ titreGraph=" "
 #-----------------------------------------------------------------------
 
 
-#Lecture du fichier CSV
+#Lecture des fichiers CSV
 path = r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv"
 new_df = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\new_arbres.csv", sep = ',', header = 0)
 arr_df = pandas.read_csv(r"D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\arrondissements.csv", sep = ';', header = 0)
@@ -139,13 +140,14 @@ arbres.sort()
 #-----------------------------------------------------------------------
 
 def separateurMilliers(n):
+    ## Renvoi un nbre avec séparateur de milliers
     result = "{:,}".format(n).replace(',', ' ').replace('.', ',')
     return result
 
 
 def affiche_map(marqueurs = {},zone = []):
-    global map_widget
     ## Affiche la carte avec les marqueurs et les zones
+    global map_widget
     #numero d'arrondissement spec
     arr= []
     if type(marqueurs) == dict:
@@ -277,6 +279,7 @@ def apply():
     if data[0] == 'TOUS' and data[1] == 'TOUS' and data[2] == "Quantité":
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
+        count=len(test_df)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']<2], inplace=True)
         if len(test_df) == 0:
@@ -346,7 +349,7 @@ def apply():
             nbr_arrMax = new_df["ARRONDISSEMENT"].value_counts().max()
             nbr_arrMin = new_df["ARRONDISSEMENT"].value_counts().min()
 
-            answer = f"\nL'arrondissement avec le plus d'arbres est {nom_arrond_max} comptant un total de {separateurMilliers(nbr_arrMax)} arbres.\n\nCelui avec le moins d'arbres est {nom_arrond_min} avec un total de {separateurMilliers(nbr_arrMin)} arbres.\n"
+            answer = f"\nIl y a {separateurMilliers(count)} arbres dans Paris et les départements dispo \n\nL'arrondissement avec le plus d'arbres est {nom_arrond_max} comptant un total de {separateurMilliers(nbr_arrMax)} arbres.\n\nCelui avec le moins d'arbres est {nom_arrond_min} avec un total de {separateurMilliers(nbr_arrMin)} arbres.\n"
             AfficheframeLabelText()
 
 
@@ -354,6 +357,7 @@ def apply():
     if data[0] == 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité":
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
+        count=len(test_df.loc[test_df['LIBELLE FRANCAIS']== data[1], :])
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']<2], inplace=True)
         test_df = test_df.loc[test_df['LIBELLE FRANCAIS']== data[1], :]
@@ -396,7 +400,7 @@ def apply():
             df_nbrMaxArbre = dg["ARRONDISSEMENT"].value_counts()[0]
             df_nbrMinArbre = dg["ARRONDISSEMENT"].value_counts()[-1]
 
-            answer = f"\nL'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {separateurMilliers(df_nbrMaxArbre)} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {separateurMilliers(df_nbrMinArbre)} arbre(s)\n"
+            answer = f"\nIl y a {separateurMilliers(count)} {data[1].upper()} dans Paris et les départements dispo \n\nL'arrondissement qui compte le plus de {data[1]} est {df_maxArbre} avec {separateurMilliers(df_nbrMaxArbre)} arbre(s).\n\nL'arrondissement qui compte le moins de {data[1]} est {df_minArbre} avec {separateurMilliers(df_nbrMinArbre)} arbre(s)\n"
 
             AfficheframeLabelText()
 
@@ -446,6 +450,7 @@ def apply():
     if data[0] != 'TOUS' and data[1] == 'TOUS' and data[2] == "Quantité":
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
+        count=len(test_df.loc[test_df['ARRONDISSEMENT']== data[0], :])
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']<2], inplace=True)
         test_df = test_df.loc[test_df['ARRONDISSEMENT']== data[0], :]
@@ -568,7 +573,7 @@ def apply():
             nom_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().keys().tolist()[-1]
             nbr_df_min = Arbre_df["LIBELLE FRANCAIS"].value_counts().tolist()[-1]
 
-            answer = (f"\nL'arbre le plus présent dans {data[0] } est le {nom_df} avec {separateurMilliers(nbr_df)} specimens\n\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {separateurMilliers(nbr_df_min)} specimen.\n" )
+            answer = (f"\nIl y a {separateurMilliers(count)} arbres dans {data[0].upper()} \n\nL'arbre le plus présent dans {data[0] } est le {nom_df} avec {separateurMilliers(nbr_df)} specimens\n\nL'arbre le moins présent dans {data[0]} est le {nom_df_min} avec seulement {separateurMilliers(nbr_df_min)} specimen.\n" )
             AfficheframeLabelText()
 
 
@@ -576,6 +581,7 @@ def apply():
     if data[0] != 'TOUS' and data[1] != 'TOUS' and data[2] == "Quantité" :
 
         test_df = pandas.read_csv(path, sep = ',', header = 0)
+        count=len(test_df.loc[   (test_df['ARRONDISSEMENT']== data[0]) & (test_df['LIBELLE FRANCAIS']== data[1]), :])
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
         test_df.drop(test_df.index[test_df['HAUTEUR (m)']<2], inplace=True)
         test_df = test_df.loc[test_df['ARRONDISSEMENT']== data[0], :]
@@ -655,7 +661,6 @@ def apply():
 
             dg = new_df_Q2.query('`ARRONDISSEMENT` == @data[0] & `LIBELLE FRANCAIS` == @data[1]')
             nbr = dg["ARRONDISSEMENT"].value_counts().max()
-
 
             answer = f"\nDans l'arrondissement de {data[0]} il y a {nbr} arbre(s) de type {data[1]}.\n"
 
@@ -1397,7 +1402,7 @@ def apply():
 
             labels = espece
             sizes = pourcentage
-            listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9']
+            listeColors = ['#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9', '#f8961e', '#f9844a', '#90be6d', '#43aa8b','#f9c74f','#277da1','#9f86c0','#84a98c','#d9ed92','#06d6a0', '#f1e3e4', '#f2d0a9']
             colors = ['#f94144']
             listeExplode = [0.2]
             for i in range(len(labels)-1):
@@ -1445,7 +1450,7 @@ def apply():
             if data[1] != 'TOUS':
                 answer = f"\nTous les arbres sont pris dans la requête\n\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
             else:
-                answer = f"\nL'arbre le plus présent dans tous les arrondissement confondus est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans tous les arrondissement confondus est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
+                answer = f"\nL'arbre le plus présent dans {data[0].upper()} est le {df_arrdMax2} apparaissant {separateurMilliers(df_nbrMax2)} fois\n\nL'arbre le moins présent dans {data[0].upper()} est le {df_arrdMin2} apparaissant { separateurMilliers(df_nbrMin2)} fois\n"
 
 
             AfficheframeLabelText()
@@ -1488,6 +1493,51 @@ def apply():
             affiche_map(marqueurs)
 
 
+    #[TOUS, TOUS, MAP]
+    if data[2] == "MAP":
+        print('map : ', data)
+
+        test_df = pandas.read_csv(path, sep = ',', header = 0)
+        test_df.drop(test_df.index[test_df['HAUTEUR (m)']>50], inplace=True)
+        test_df.drop(test_df.index[test_df['HAUTEUR (m)']<2], inplace=True)
+        if data[0] != "TOUS":
+            test_df = test_df.loc[test_df['ARRONDISSEMENT']== data[0], :]
+        if data[1] != "TOUS":
+            test_df = test_df.loc[test_df['LIBELLE FRANCAIS']== data[1], :]
+        if len(test_df) == 0:
+            noData()
+        else:
+
+            #CREATION DE LA MAP ----------------------------------------------------
+
+            dataQ1 = pandas.read_csv(path , sep = ',', header = 0)
+            #dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']>50], inplace=True)
+            #dataQ1.drop(dataQ1.index[dataQ1['HAUTEUR (m)']<2], inplace=True)
+            if data[0] != "TOUS":
+                dataQ1 = dataQ1.loc[dataQ1['ARRONDISSEMENT']== data[0], :]
+            if data[1] != "TOUS":
+                dataQ1 = dataQ1.loc[dataQ1['LIBELLE FRANCAIS']== data[1], :]
+
+            print(len(dataQ1))
+
+            map_widget = TkinterMapView(frameTheMap, width=600, height=400, corner_radius=20)
+            map_widget.pack(  pady = 10, padx = 10)
+
+            map_widget.set_tile_server("https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&s=Ga", max_zoom=22)
+
+
+
+            # Zone affichée de la carte = PARIS
+            map_widget.set_position(48.860381, 2.338594)
+            # Zoom
+            map_widget.set_zoom(11)
+
+            marqueurs = {}
+
+            for i in range(0,len(dataQ1)):
+                marqueurs[f"{dataQ1.iloc[i , 4]} - {i}"] = [dataQ1.iloc[i , 8], dataQ1.iloc[i , 9]]
+
+            affiche_map(marqueurs)
 
 
 
@@ -1624,6 +1674,7 @@ def creationListeCritere():
         listeCritere.insert(1, "Quantité")
         listeCritere.insert(2, "Hauteur")
         listeCritere.insert(3, "Type")
+        listeCritere.insert(4, "MAP")
         listeCritere.bind('<<ListboxSelect>>', selectCritere)
         listeCritere.pack(side=BOTTOM)
         critereIsVisible = True
@@ -1682,167 +1733,6 @@ def mapFenetre():
     mapFenetre.mainloop()
 
 
-# MANU
-'''
-mainFenetre = Tk()
-mainFenetre.title('JSON STAT ARBRES')
-mainFenetre.geometry('1200x900')
-img1 = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgArbre.png")
-img = ImageTk.PhotoImage(img1)
-imgFeuille = PIL.Image.open("D:\Manu\FORMATIONS\PYTHON\JsonStatArbres\ImgFeuille.png")
-img2 = ImageTk.PhotoImage(imgFeuille)
-
-
-#bg = PhotoImage(file = "ImgFeuille.png")
-
-#-----------------------------------------------------------------------
-#                 FRAME GAUCHE
-#-----------------------------------------------------------------------
-
-#frameGauche = Frame(mainFenetre, bg='Red',)
-frameGauche = Frame(mainFenetre, bg=colorg,)
-frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
-
-
-#---------- TOP : DEMANDE----------
-
-#frameDemande = Frame(frameGauche, bg='Blue', height = 500)
-frameDemande = Frame(frameGauche, bg=color, height = 600, width=600)
-frameDemande.pack( fill=BOTH, expand=True,)
-
-canvas1 = Canvas( frameDemande, )
-canvas1.pack(fill = "both", expand = True)
-canvas1.create_image( 0, 0, image = img2, anchor = "nw")
-
-canvas1.grid_rowconfigure(0, weight=5)
-canvas1.grid_rowconfigure(1, weight=1)
-
-canvas1.grid_columnconfigure(0, weight=1)
-canvas1.grid_columnconfigure(1, weight=1)
-canvas1.grid_columnconfigure(2, weight=1)
-canvas1.grid_columnconfigure(3, weight=1)
-canvas1.grid_columnconfigure(4, weight=1)
-canvas1.grid_columnconfigure(5, weight=1)
-canvas1.grid_columnconfigure(6, weight=1)
-canvas1.grid_columnconfigure(7, weight=1)
-canvas1.grid_columnconfigure(8, weight=1)
-canvas1.grid_columnconfigure(9, weight=1)
-canvas1.grid_columnconfigure(10, weight=1)
-
-
-#frameMenu = Frame(frameDemande, bg="Pink",)
-frameMenu = Frame(frameDemande, bg=color,)
-frameMenu.pack(side=TOP)
-
-# Arrdt
-#frameArrdt = Frame(frameMenu, bg="Grey", width=500)
-frameArrdt = Frame(canvas1, bg=color, width=500, height=200)
-frameArrdt.grid(row=0, column=1, sticky=N, columnspan=3, pady=5)
-
-boutonArrdt = Button(frameArrdt, text="Arrondissement", bg=colorb, command=creationListeArrdt, width=17)
-boutonArrdt.pack(side=TOP)
-
-listeArrdt = Listbox(frameArrdt, width=20,)
-listeArrdt.pack()
-listeArrdt.destroy()
-
-
-#Arbre
-#frameArbre = Frame(frameMenu, bg="Grey", width=500)
-frameArbre = Frame(canvas1, bg=color, width=500, height=200)
-frameArbre.grid(row=0, column=4, sticky=N, columnspan=3, pady=5)
-
-boutonArbre = Button(frameArbre, text="Arbre", bg=colorb, command=creationListeArbre, width=17)
-boutonArbre.pack(side=TOP)
-
-
-#Critère
-#frameCritere = Frame(frameMenu, bg="Grey", width=500)
-frameCritere = Frame(canvas1, bg=color, width=500, height=200)
-frameCritere.grid(row=0, column=7, sticky=N, columnspan=3, pady=5)
-
-boutonCritere = Button(frameCritere, text="Critere", bg=colorb, command=creationListeCritere, width=17)
-boutonCritere.pack(side=TOP)
-
-
-#BoutonAPPLY
-#frameBouton = Frame(frameDemande, bg="Orange",)
-#frameBouton = Frame(frameDemande, bg=color,)
-#frameBouton.pack(side=BOTTOM,  pady=20, padx=20)
-
-boutonApply = Button(canvas1, text="APPLY", command=apply, bg=colorb)
-boutonApply.grid(row=1, column=8, sticky=S, pady=5)
-
-boutonQ1 = Button(canvas1, text="Q1", command = demande1, bg=colorb)
-boutonQ1.grid(row=1, column=2, sticky=S, pady=5)
-
-boutonQ2 = Button(canvas1, text="Q2", command = demande2, bg=colorb)
-boutonQ2.grid(row=1, column=4, sticky=S, pady=5)
-
-boutonQ3 = Button(canvas1, text="Q3", command = demande3, bg=colorb)
-boutonQ3.grid(row=1, column=6, sticky=S, pady=5)
-
-
-
-#---------- BOTTOM : GRAPHE ----------
-
-
-#frameGraph = Frame(frameGauche, bg='Black', height = 500, width = 500)
-#frameGraph = Frame(frameGauche, bg=color, height = 500, width = 600)
-#frameGraph.pack( fill=BOTH, expand=False)
-
-frameTitreGraph = Frame(frameGauche, bg=colorg, height=500)
-frameTitreGraph.pack(side=BOTTOM, expand=False)
-
-titreGraph = Button(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
-titreGraph.pack(side=LEFT, pady = 5)
-
-frameGraph = Frame(frameGauche, bg=colorg, height = 600, width = 450)
-#frameGraph.pack( fill=BOTH, expand=False)
-frameGraph.pack( expand=False)
-
-
-
-
-#-----------------------------------------------------------------------
-#                 FRAME DROITE
-#-----------------------------------------------------------------------
-
-#frameDroite = Frame(mainFenetre, bg='Green')
-frameDroite = Frame(mainFenetre, bg=color,)
-frameDroite.pack(side=RIGHT, expand=True, fill=BOTH)
-
-
-#---------- TOP : REPONSE TEXTE ----------
-
-#frameReponseTexte = Frame(frameDroite, bg='Yellow')
-#frameReponseTexte = Frame(frameDroite, bg=color, width = 600)
-#frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
-frameReponseTexte = Frame(frameDroite, bg=color, width = 600)
-frameReponseTexte.pack_propagate(False)
-frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
-frameImage = Label(frameReponseTexte, image = img)
-frameImage.pack()
-
-
-
-
-#---------- BOTTOM : MAP  ----------
-
-#frameMap = Frame(frameDroite, bg='White', height=500, width=500)
-frameMap = Frame(frameDroite, bg=colorm, height=700, width=600)
-frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-frameTitreMap = Frame(frameMap, bg=colorm,)
-frameTitreMap.pack(side=BOTTOM)
-
-titreMap = Button(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30, command=mapFenetre)
-titreMap.pack(side=LEFT, padx=10, pady = 5)
-
-frameTheMap = Frame(frameMap, bg=colorm,)
-frameTheMap.pack(side=TOP)
-
-'''
 
 
 # SEB
@@ -1859,9 +1749,6 @@ img2 = ImageTk.PhotoImage(resize_image)
 #                 FRAME GAUCHE → HAUT
 #-----------------------------------------------------------------------
 
-#frameGauche = Frame(mainFenetre, bg='Red',)
-#frameGauche = Frame(mainFenetre, bg=colorg)
-#frameGauche.pack(side=LEFT, expand=True, fill=BOTH)
 
 frameHaut = Frame(mainFenetre, bg=colorg)
 frameHaut.pack(side=TOP, expand=True, fill=BOTH)
@@ -1870,10 +1757,9 @@ frameBas = Frame(mainFenetre, bg=colorg)
 frameBas.pack(side=BOTTOM, expand=True, fill=BOTH)
 
 
+
 #---------- DEMANDE TOP LEFT----------
 
-#frameDemande = Frame(frameGauche, bg='Blue', height = 500)
-#frameDemande = Frame(frameGauche, bg=color, height = 300, width=600)
 frameDemande = Frame(frameHaut, bg=color, height = 300, width=600)
 frameDemande.pack( fill=BOTH, expand=True)
 frameDemande.pack(side=LEFT,  fill=BOTH, expand=True)
@@ -1899,13 +1785,12 @@ canvas1.grid_columnconfigure(8, weight=1)
 canvas1.grid_columnconfigure(9, weight=1)
 canvas1.grid_columnconfigure(10, weight=1)
 
-
-#frameMenu = Frame(frameDemande, bg="Pink",)
 frameMenu = Frame(frameDemande, bg=color,)
 frameMenu.pack(side=TOP)
 
+
 # Arrdt
-#frameArrdt = Frame(frameMenu, bg="Grey", width=500)
+
 frameArrdt = Frame(canvas1, bg=color, width=500, height=200)
 frameArrdt.grid(row=0, column=1, sticky=N, columnspan=3, pady=5)
 
@@ -1918,7 +1803,7 @@ listeArrdt.destroy()
 
 
 #Arbre
-#frameArbre = Frame(frameMenu, bg="Grey", width=500)
+
 frameArbre = Frame(canvas1, bg=color, width=500, height=200)
 frameArbre.grid(row=0, column=4, sticky=N, columnspan=3, pady=5)
 
@@ -1926,8 +1811,9 @@ boutonArbre = Button(frameArbre, text="Arbre", bg=colorb, command=creationListeA
 boutonArbre.pack(side=TOP)
 
 
+
 #Critère
-#frameCritere = Frame(frameMenu, bg="Grey", width=500)
+
 frameCritere = Frame(canvas1, bg=color, width=500, height=200)
 frameCritere.grid(row=0, column=7, sticky=N, columnspan=3, pady=5)
 
@@ -1973,10 +1859,6 @@ boutonQ3.grid(row=2, column=6, sticky=S, pady=5)
 
 #---------- REPONSE TEXTE TOP RIGHT----------
 
-#frameReponseTexte = Frame(frameDroite, bg='Yellow')
-#frameReponseTexte = Frame(frameDroite, bg=color, width = 600)
-#frameReponseTexte.pack_propagate(False)
-#frameReponseTexte.pack(side=TOP, fill=BOTH, expand=True)
 frameReponseTexte = Frame(frameHaut, bg=color, width = 600)
 frameReponseTexte.pack_propagate(False)
 frameReponseTexte.pack(side=RIGHT, fill=BOTH, expand=True)
@@ -1986,14 +1868,6 @@ frameImage.pack()
 
 
 #----------  GRAPHE BOTTOM LEFT----------
-
-#frameGraph = Frame(frameGauche, bg='Black', height = 500, width = 500)
-#frameTitreGraph = Frame(frameGauche, bg=colorg,)
-#frameTitreGraph.pack(side=BOTTOM)
-
-
-
-
 
 frameGraph = Frame(frameBas, bg=colorg, height=500, width=600)
 frameGraph.pack(fill=BOTH, expand=True)
@@ -2006,50 +1880,30 @@ frameTitreGraph.pack(side=BOTTOM)
 titreGraph = Label(frameTitreGraph, text="GRAPH", bg=colorb, fg = colort, height=2, width=30)
 titreGraph.pack(side=BOTTOM, pady = 5)
 
-#frameGraph = Frame(frameGauche, bg=colorg, height = 364, width = 400, pady = 5)
-#frameGraph = Frame(frameGauche, bg=colorg, height = 500, width = 400, pady = 5)
-#frameGraph.pack( side=BOTTOM,fill=BOTH, expand=True)
+
 frameGraph = Frame(frameGraph, bg=colorg, height = 500, pady = 5)
 frameGraph.pack( side=TOP, fill=BOTH, expand=True)
 
 
 
 
-
 #---------- MAP BOTTOM RIGHT  ----------
-
-#frameMap = Frame(frameDroite, bg='White', height=500, width=500)
-#frameMap = Frame(frameDroite, bg=colorm, height=500, width=600)
-#frameMap.pack_propagate(False)
-#frameMap.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-
 
 frameMap = Frame(frameBas, bg=colorm, height=500, width=600)
 frameMap.pack(fill=BOTH, expand=True)
 frameMap.pack(side=RIGHT, fill=BOTH, expand=True)
 frameMap.pack_propagate(False)
 
-
 frameTitreMap = Frame(frameMap, bg=colorm,)
 frameTitreMap.pack(side=BOTTOM)
-
-
-#titreMap = Label(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30)
-#titreMap.pack(side=BOTTOM, pady = 5)
 
 titreMap = Button(frameTitreMap, text="MAP", bg=colorb, fg = colort, height=2, width=30, command=mapFenetre)
 titreMap.pack(side=LEFT, padx=10, pady = 5)
 
-##labelImage2 = Label(frameTheMap, image = img)
-##labelImage2.pack()
 frameTheMap = Frame(frameMap, bg=colorm, height = 500, pady = 15)
 frameTheMap.pack(side=TOP,fill=BOTH, expand=True)
 
 
-
-#boutonArrdt = Button(mainFenetre, command=creationListe)
-#boutonArrdt.pack()
 
 
 
